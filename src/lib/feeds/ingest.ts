@@ -1,7 +1,7 @@
 import { sql, ensureInitialized } from "@/lib/db";
-import { searchAdzuna, AdzunaJob, AdzunaSearchParams } from "./adzuna.js";
-import { classifyJob, classifyJobStatus, isEligible } from "./classifier.js";
-import { parseAdzunaLocation } from "./location-parser.js";
+import { searchAdzuna, AdzunaJob, AdzunaSearchParams } from "./adzuna";
+import { classifyJob, classifyJobStatus, isEligible } from "./classifier";
+import { parseAdzunaLocation } from "./location-parser";
 import { MH_ROLES } from "@/constants";
 
 export interface IngestStats {

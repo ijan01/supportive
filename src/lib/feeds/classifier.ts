@@ -1,4 +1,4 @@
-import { ROLE_KEYWORDS, RoleKeywords } from "./role-keywords.js";
+import { ROLE_KEYWORDS, RoleKeywords } from "./role-keywords";
 
 export interface ClassificationResult {
   roleSlug: string;
