@@ -3,28 +3,32 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { encode } from "next-auth/jwt";
-import { getUserByEmail, verifyPassword } from "@/lib/users";
+import { createUser, getUserByEmail } from "@/lib/users";
 
-export async function loginAction(
+export async function registerAction(
   _prev: { error: string } | null,
   formData: FormData
 ): Promise<{ error: string } | null> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const name = formData.get("name") as string;
+  const role = formData.get("role") as "seeker" | "company";
+  const companyName = formData.get("companyName") as string | null;
 
-  if (!email || !password) {
-    return { error: "Email and password are required" };
+  if (!email || !password || !name || !role) {
+    return { error: "All fields are required" };
   }
 
-  const user = await getUserByEmail(email);
-  if (!user) {
-    return { error: "Invalid email or password" };
+  if (password.length < 6) {
+    return { error: "Password must be at least 6 characters" };
   }
 
-  const valid = await verifyPassword(password, user.password_hash);
-  if (!valid) {
-    return { error: "Invalid email or password" };
+  const existing = await getUserByEmail(email);
+  if (existing) {
+    return { error: "An account with this email already exists" };
   }
+
+  const user = await createUser(email, password, name, role, companyName || undefined);
 
   const secret = process.env.NEXTAUTH_SECRET || "development-secret-change-in-production";
   const useSecureCookies = process.env.NODE_ENV === "production";
