@@ -23,11 +23,69 @@
 ## To revisit
 
 - Protect or remove `/api/seed` and `/api/debug-auth` before launch.
-- `lang="en"` in root layout needs to be `lang="en-AU"` (Section 2).
-- All dates use `toLocaleDateString("en-US", {...})` — change to `en-AU` or DD/MM/YYYY.
 - No rate limiting on auth endpoints.
 - No CSRF protection beyond sameSite=lax cookie.
 - Eventually emit `ItemList` JSON-LD on `/jobs` index and role/location hubs for better discovery.
+
+## Week 2 — friction found in Section 7 walkthrough
+
+### Candidate (peer worker in Melbourne, part-time, youth mental health)
+
+- **Search requires Enter key** — `JobFilters` has no submit button; users who type and pause
+  expect live results or a visible search button. High drop-off risk on mobile.
+- **"Remote" is both a job type and a location** — `JOB_TYPES` includes "Remote" alongside
+  "Full-time"/"Part-time", but Remote describes *where* you work, not the basis of employment.
+  A candidate filtering for "Part-time in Melbourne" sees "Remote" as a peer job-type option,
+  which is confusing. Fix: remove "Remote" from `JOB_TYPES`; use the location field
+  ("Remote (Australia)") for remote roles instead.
+- **No job count on hub pages** — `/roles/peer-support-worker` and `/locations/melbourne-vic`
+  show "coming soon" with no live count. A candidate can't tell whether there are 0 or 50 roles
+  before clicking through to /jobs with filters.
+- **Save-job feature is invisible to anonymous users** — no prompt on job cards or the jobs list
+  to sign up in order to save roles. The save/track-applications feature is a key retention hook
+  but candidates don't discover it until after they've already registered.
+- **Empty-state emoji** — `JobList`, seeker dashboard, and company dashboard use 🔍 📝 🔖 📋
+  emoji in empty states. Inconsistent with the no-emoji style elsewhere.
+- **No "apply via Supportive" vs "apply externally" clarity** — job cards don't indicate whether
+  clicking through leads to an external apply URL or an in-site application form. Candidates
+  don't know what they're getting into before clicking.
+- **No pagination on /jobs** — all matching jobs load at once. Fine now with 6 seed jobs; will
+  become a performance and UX problem at scale.
+
+### Employer (AOD service, Brisbane, thinking of posting three roles)
+
+- **No employer value proposition on the homepage** — the hero CTA is entirely candidate-facing
+  ("Find your next role in mental health"). There is no above-the-fold signal for employers that
+  this is the right place to hire. The only employer entry point is the footer "Post a role" link.
+- **`/employers` is fully "coming soon"** — an employer navigating there from the footer or
+  navbar gets a placeholder with no social proof, no employer count, no "why post here" copy.
+  This is the first page a skeptical employer would check before registering.
+- **No pricing or "it's free" signal anywhere** — an employer landing on the register page has
+  no idea if posting costs money. No indication on the homepage, /employers, or /auth/register.
+- **Post job form has no context on the apply flow** — the "External Apply URL" field is
+  optional with no explanation. If left blank, applications come through Supportive's internal
+  form, but the employer isn't told this. Many employers will be confused about where
+  applications go.
+- **No email notification on new application** — employers must actively check the dashboard.
+  Most will forget and miss applications. Critical gap for retention.
+- **Company dashboard heading says "Company Dashboard"** — should be "Employer dashboard" or
+  personalised ("headspace — Dashboard"). "Company" feels like a tech-startup word in an MH
+  context.
+- **`+ Post a Job` button** — the leading `+` is inconsistent with the rest of the UI. Minor.
+- **No confirmation toast after posting a job** — form submits and silently redirects to
+  dashboard. A "Role posted successfully" message would reassure first-time employers.
+- **Demo credentials visible on login page** — `company@demo.com / password123` is shown to
+  all visitors. Fine for development; must be removed before public launch.
+
+### General
+
+- **`formatSalary` outputs `$80k - $100k`** — correct for AU context, but no "AUD" label.
+  International visitors (or Google) may not know the currency. JSON-LD has `"currency": "AUD"`
+  which covers structured data; consider adding "AUD" to the on-page salary display.
+- **`/api/seed` is publicly accessible** and would re-seed the DB if hit in production.
+  Remove or gate behind an admin token before any public traffic.
+- **No `robots.txt` `Disallow` for `/api/` or `/dashboard/`** — bots can crawl auth endpoints
+  and API routes. Add disallow rules for non-public paths.
 
 ## Architecture notes
 
