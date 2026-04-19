@@ -1,14 +1,17 @@
-import { db } from "./db";
+import { sql, ensureInitialized } from "./db";
 import { User, UserRow } from "./types";
 import bcrypt from "bcryptjs";
 
-export function getUserByEmail(email: string): UserRow | undefined {
-  return db().prepare("SELECT * FROM users WHERE email = ?").get(email) as UserRow | undefined;
+export async function getUserByEmail(email: string): Promise<UserRow | undefined> {
+  await ensureInitialized();
+  const result = await sql`SELECT * FROM users WHERE email = ${email}`;
+  return result.rows[0] as UserRow | undefined;
 }
 
-export function getUserById(id: number): User | undefined {
-  const row = db().prepare("SELECT id, email, name, role, company_name, created_at FROM users WHERE id = ?").get(id) as User | undefined;
-  return row;
+export async function getUserById(id: number): Promise<User | undefined> {
+  await ensureInitialized();
+  const result = await sql`SELECT id, email, name, role, company_name, created_at FROM users WHERE id = ${id}`;
+  return result.rows[0] as User | undefined;
 }
 
 export async function createUser(
@@ -18,14 +21,14 @@ export async function createUser(
   role: "company" | "seeker",
   companyName?: string
 ): Promise<User> {
+  await ensureInitialized();
   const passwordHash = await bcrypt.hash(password, 12);
-  const result = db()
-    .prepare(
-      "INSERT INTO users (email, password_hash, name, role, company_name) VALUES (?, ?, ?, ?, ?)"
-    )
-    .run(email, passwordHash, name, role, companyName || null);
-
-  return getUserById(Number(result.lastInsertRowid))!;
+  const result = await sql`
+    INSERT INTO users (email, password_hash, name, role, company_name)
+    VALUES (${email}, ${passwordHash}, ${name}, ${role}, ${companyName || null})
+    RETURNING id, email, name, role, company_name, created_at
+  `;
+  return result.rows[0] as User;
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {

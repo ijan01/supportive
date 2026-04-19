@@ -5,9 +5,11 @@ import StatsSection from "@/components/StatsSection";
 import { getFeaturedJobs } from "@/lib/jobs";
 import { getBlogPosts } from "@/lib/blog";
 
-export default function Home() {
-  const featuredJobs = getFeaturedJobs(6);
-  const blogPosts = getBlogPosts().slice(0, 3);
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const featuredJobs = await getFeaturedJobs(6);
+  const blogPosts = (await getBlogPosts()).slice(0, 3);
 
   return (
     <>

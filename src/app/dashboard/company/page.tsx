@@ -11,7 +11,7 @@ export default async function CompanyDashboard() {
   if (!session?.user) redirect("/auth/login");
   if (session.user.role !== "company") redirect("/dashboard/seeker");
 
-  const jobs = getJobsByUserId(Number(session.user.id));
+  const jobs = await getJobsByUserId(Number(session.user.id));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -9,7 +9,7 @@ export default async function ApplicationsPage() {
   const session = await auth();
   if (!session?.user) redirect("/auth/login");
 
-  const applications = getApplicationsByUserId(Number(session.user.id));
+  const applications = await getApplicationsByUserId(Number(session.user.id));
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

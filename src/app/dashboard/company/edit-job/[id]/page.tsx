@@ -13,7 +13,7 @@ export default async function EditJobPage({
   if (session.user.role !== "company") redirect("/dashboard/seeker");
 
   const { id } = await params;
-  const job = getJobById(Number(id));
+  const job = await getJobById(Number(id));
   if (!job) notFound();
   if (job.user_id !== Number(session.user.id)) redirect("/dashboard/company");
 

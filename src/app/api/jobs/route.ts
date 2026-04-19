@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   if (category) filters.category = category;
   if (jobType) filters.job_type = jobType;
 
-  const jobs = getJobs(filters);
+  const jobs = await getJobs(filters);
   return NextResponse.json({ jobs });
 }
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const job = createJob(Number(session.user.id), {
+    const job = await createJob(Number(session.user.id), {
       title,
       company,
       location,

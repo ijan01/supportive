@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const job = getJobById(Number(id));
+  const job = await getJobById(Number(id));
 
   if (!job) {
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
@@ -29,7 +29,7 @@ export async function PUT(
 
   try {
     const body = await request.json();
-    const job = updateJob(Number(id), Number(session.user.id), body);
+    const job = await updateJob(Number(id), Number(session.user.id), body);
 
     if (!job) {
       return NextResponse.json(
@@ -57,7 +57,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const deleted = deleteJob(Number(id), Number(session.user.id));
+  const deleted = await deleteJob(Number(id), Number(session.user.id));
 
   if (!deleted) {
     return NextResponse.json(

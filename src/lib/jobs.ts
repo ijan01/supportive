@@ -1,122 +1,97 @@
-import { db } from "./db";
+import { sql, ensureInitialized } from "./db";
 import { Job, JobFilters, CreateJobInput, JobWithApplicationCount } from "./types";
 
-export function getJobs(filters?: JobFilters): Job[] {
-  const conditions: string[] = [];
-  const params: (string | number)[] = [];
+export async function getJobs(filters?: JobFilters): Promise<Job[]> {
+  await ensureInitialized();
+  const search = filters?.search ? `%${filters.search}%` : null;
+  const location = filters?.location || null;
+  const category = filters?.category || null;
+  const jobType = filters?.job_type || null;
 
-  if (filters?.search) {
-    conditions.push("(title LIKE ? OR company LIKE ?)");
-    params.push(`%${filters.search}%`, `%${filters.search}%`);
-  }
-  if (filters?.location) {
-    conditions.push("location = ?");
-    params.push(filters.location);
-  }
-  if (filters?.category) {
-    conditions.push("category = ?");
-    params.push(filters.category);
-  }
-  if (filters?.job_type) {
-    conditions.push("job_type = ?");
-    params.push(filters.job_type);
-  }
-
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const sql = `SELECT * FROM jobs ${whereClause} ORDER BY is_featured DESC, created_at DESC`;
-
-  return db().prepare(sql).all(...params) as Job[];
+  const result = await sql`
+    SELECT * FROM jobs
+    WHERE
+      (${search}::text IS NULL OR title ILIKE ${search} OR company ILIKE ${search})
+      AND (${location}::text IS NULL OR location = ${location})
+      AND (${category}::text IS NULL OR category = ${category})
+      AND (${jobType}::text IS NULL OR job_type = ${jobType})
+    ORDER BY is_featured DESC, created_at DESC
+  `;
+  return result.rows as Job[];
 }
 
-export function getJobById(id: number): Job | undefined {
-  return db().prepare("SELECT * FROM jobs WHERE id = ?").get(id) as Job | undefined;
+export async function getJobById(id: number): Promise<Job | undefined> {
+  await ensureInitialized();
+  const result = await sql`SELECT * FROM jobs WHERE id = ${id}`;
+  return result.rows[0] as Job | undefined;
 }
 
-export function getFeaturedJobs(limit = 6): Job[] {
-  return db()
-    .prepare("SELECT * FROM jobs WHERE is_featured = 1 ORDER BY created_at DESC LIMIT ?")
-    .all(limit) as Job[];
+export async function getFeaturedJobs(limit = 6): Promise<Job[]> {
+  await ensureInitialized();
+  const result = await sql`SELECT * FROM jobs WHERE is_featured = 1 ORDER BY created_at DESC LIMIT ${limit}`;
+  return result.rows as Job[];
 }
 
-export function getJobsByUserId(userId: number): JobWithApplicationCount[] {
-  return db()
-    .prepare(
-      `SELECT j.*, COUNT(a.id) as application_count
-       FROM jobs j
-       LEFT JOIN applications a ON a.job_id = j.id
-       WHERE j.user_id = ?
-       GROUP BY j.id
-       ORDER BY j.created_at DESC`
-    )
-    .all(userId) as JobWithApplicationCount[];
+export async function getJobsByUserId(userId: number): Promise<JobWithApplicationCount[]> {
+  await ensureInitialized();
+  const result = await sql`
+    SELECT j.*, COALESCE(COUNT(a.id), 0)::integer as application_count
+    FROM jobs j
+    LEFT JOIN applications a ON a.job_id = j.id
+    WHERE j.user_id = ${userId}
+    GROUP BY j.id
+    ORDER BY j.created_at DESC
+  `;
+  return result.rows as JobWithApplicationCount[];
 }
 
-export function createJob(userId: number, input: CreateJobInput): Job {
-  const result = db()
-    .prepare(
-      `INSERT INTO jobs (user_id, title, company, location, category, job_type, salary_min, salary_max, description, requirements, apply_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .run(
-      userId,
-      input.title,
-      input.company,
-      input.location,
-      input.category,
-      input.job_type,
-      input.salary_min || null,
-      input.salary_max || null,
-      input.description,
-      input.requirements,
-      input.apply_url || null
-    );
-
-  return getJobById(Number(result.lastInsertRowid))!;
+export async function createJob(userId: number, input: CreateJobInput): Promise<Job> {
+  await ensureInitialized();
+  const result = await sql`
+    INSERT INTO jobs (user_id, title, company, location, category, job_type, salary_min, salary_max, description, requirements, apply_url)
+    VALUES (${userId}, ${input.title}, ${input.company}, ${input.location}, ${input.category}, ${input.job_type},
+            ${input.salary_min || null}, ${input.salary_max || null}, ${input.description}, ${input.requirements},
+            ${input.apply_url || null})
+    RETURNING *
+  `;
+  return result.rows[0] as Job;
 }
 
-export function updateJob(id: number, userId: number, input: CreateJobInput): Job | null {
-  const existing = getJobById(id);
-  if (!existing || existing.user_id !== userId) return null;
-
-  db()
-    .prepare(
-      `UPDATE jobs SET title = ?, company = ?, location = ?, category = ?, job_type = ?,
-       salary_min = ?, salary_max = ?, description = ?, requirements = ?, apply_url = ?,
-       updated_at = datetime('now')
-       WHERE id = ? AND user_id = ?`
-    )
-    .run(
-      input.title,
-      input.company,
-      input.location,
-      input.category,
-      input.job_type,
-      input.salary_min || null,
-      input.salary_max || null,
-      input.description,
-      input.requirements,
-      input.apply_url || null,
-      id,
-      userId
-    );
-
-  return getJobById(id)!;
+export async function updateJob(id: number, userId: number, input: CreateJobInput): Promise<Job | null> {
+  await ensureInitialized();
+  const result = await sql`
+    UPDATE jobs SET
+      title = ${input.title},
+      company = ${input.company},
+      location = ${input.location},
+      category = ${input.category},
+      job_type = ${input.job_type},
+      salary_min = ${input.salary_min || null},
+      salary_max = ${input.salary_max || null},
+      description = ${input.description},
+      requirements = ${input.requirements},
+      apply_url = ${input.apply_url || null},
+      updated_at = NOW()
+    WHERE id = ${id} AND user_id = ${userId}
+    RETURNING *
+  `;
+  return (result.rows[0] as Job) || null;
 }
 
-export function deleteJob(id: number, userId: number): boolean {
-  const result = db()
-    .prepare("DELETE FROM jobs WHERE id = ? AND user_id = ?")
-    .run(id, userId);
-  return result.changes > 0;
+export async function deleteJob(id: number, userId: number): Promise<boolean> {
+  await ensureInitialized();
+  const result = await sql`DELETE FROM jobs WHERE id = ${id} AND user_id = ${userId}`;
+  return (result.rowCount ?? 0) > 0;
 }
 
-export function getRecentJobs(limit = 10): Job[] {
-  return db()
-    .prepare("SELECT * FROM jobs ORDER BY created_at DESC LIMIT ?")
-    .all(limit) as Job[];
+export async function getRecentJobs(limit = 10): Promise<Job[]> {
+  await ensureInitialized();
+  const result = await sql`SELECT * FROM jobs ORDER BY created_at DESC LIMIT ${limit}`;
+  return result.rows as Job[];
 }
 
-export function getAllJobIds(): number[] {
-  const rows = db().prepare("SELECT id FROM jobs").all() as { id: number }[];
-  return rows.map((r) => r.id);
+export async function getAllJobIds(): Promise<number[]> {
+  await ensureInitialized();
+  const result = await sql`SELECT id FROM jobs`;
+  return result.rows.map((r) => r.id as number);
 }

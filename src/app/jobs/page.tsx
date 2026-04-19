@@ -5,6 +5,8 @@ import { JobFilters as JobFiltersType } from "@/lib/types";
 import JobFilters from "@/components/JobFilters";
 import JobList from "@/components/JobList";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Browse Jobs",
   description: "Search and filter through hundreds of job opportunities from top companies.",
@@ -22,7 +24,7 @@ export default async function JobsPage({
   if (params.category) filters.category = params.category;
   if (params.job_type) filters.job_type = params.job_type;
 
-  const jobs = getJobs(filters);
+  const jobs = await getJobs(filters);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

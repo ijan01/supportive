@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { getAllJobIds } from "@/lib/jobs";
 import { getAllBlogSlugs } from "@/lib/blog";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://jobboard.example.com";
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -14,19 +14,32 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/auth/register`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  const jobRoutes: MetadataRoute.Sitemap = getAllJobIds().map((id) => ({
-    url: `${baseUrl}/jobs/${id}`,
-    lastModified: new Date(),
-    changeFrequency: "daily" as const,
-    priority: 0.7,
-  }));
+  let jobRoutes: MetadataRoute.Sitemap = [];
+  let blogRoutes: MetadataRoute.Sitemap = [];
 
-  const blogRoutes: MetadataRoute.Sitemap = getAllBlogSlugs().map((slug) => ({
-    url: `${baseUrl}/blog/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }));
+  try {
+    const jobIds = await getAllJobIds();
+    jobRoutes = jobIds.map((id) => ({
+      url: `${baseUrl}/jobs/${id}`,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.7,
+    }));
+  } catch {
+    // DB not available at build time
+  }
+
+  try {
+    const slugs = await getAllBlogSlugs();
+    blogRoutes = slugs.map((slug) => ({
+      url: `${baseUrl}/blog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }));
+  } catch {
+    // DB not available at build time
+  }
 
   return [...staticRoutes, ...jobRoutes, ...blogRoutes];
 }

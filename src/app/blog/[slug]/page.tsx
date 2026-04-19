@@ -4,13 +4,15 @@ import { getBlogPostBySlug, getAllBlogSlugs } from "@/lib/blog";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await getBlogPostBySlug(slug);
   if (!post) return { title: "Post Not Found" };
 
   return {
@@ -29,8 +31,13 @@ export async function generateMetadata({
   };
 }
 
-export function generateStaticParams() {
-  return getAllBlogSlugs().map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  try {
+    const slugs = await getAllBlogSlugs();
+    return slugs.map((slug) => ({ slug }));
+  } catch {
+    return [];
+  }
 }
 
 export default async function BlogPostPage({
@@ -39,7 +46,7 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await getBlogPostBySlug(slug);
   if (!post) notFound();
 
   const date = post.published_at

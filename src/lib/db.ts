@@ -1,12 +1,11 @@
-import { getDb } from "../../db";
+import { sql } from "../../db";
 import { initSchema } from "../../db/schema";
 
-let initialized = false;
+let initPromise: Promise<void> | null = null;
 
-export function db() {
-  if (!initialized) {
-    initSchema();
-    initialized = true;
-  }
-  return getDb();
+export async function ensureInitialized(): Promise<void> {
+  if (!initPromise) initPromise = initSchema();
+  await initPromise;
 }
+
+export { sql };

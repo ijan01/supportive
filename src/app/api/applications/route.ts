@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const applications = getApplicationsByUserId(Number(session.user.id));
+  const applications = await getApplicationsByUserId(Number(session.user.id));
   return NextResponse.json({ applications });
 }
 
@@ -30,19 +30,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const job = getJobById(Number(job_id));
+    const job = await getJobById(Number(job_id));
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    if (hasUserApplied(Number(session.user.id), Number(job_id))) {
+    if (await hasUserApplied(Number(session.user.id), Number(job_id))) {
       return NextResponse.json(
         { error: "You have already applied to this job" },
         { status: 409 }
       );
     }
 
-    const application = createApplication(
+    const application = await createApplication(
       Number(job_id),
       Number(session.user.id),
       name,

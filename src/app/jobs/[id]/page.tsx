@@ -12,7 +12,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const job = getJobById(Number(id));
+  const job = await getJobById(Number(id));
   if (!job) return { title: "Job Not Found" };
 
   return {
@@ -35,7 +35,7 @@ export default async function JobDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const job = getJobById(Number(id));
+  const job = await getJobById(Number(id));
   if (!job) notFound();
 
   const salary = formatSalary(job.salary_min, job.salary_max);

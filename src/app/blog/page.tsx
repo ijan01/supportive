@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { getBlogPosts } from "@/lib/blog";
 import BlogCard from "@/components/BlogCard";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Career Blog",
   description: "Career advice, job search tips, and insights for professionals and hiring managers.",
@@ -11,8 +13,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogPage() {
-  const posts = getBlogPosts();
+export default async function BlogPage() {
+  const posts = await getBlogPosts();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
