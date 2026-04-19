@@ -5,6 +5,10 @@ import { hashSync } from "bcryptjs";
 
 export const dynamic = "force-dynamic";
 
+export async function GET() {
+  return POST();
+}
+
 export async function POST() {
   // Safety: only allow seeding in production once, or when DB is empty
   try {
