@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getJobById } from "@/lib/jobs";
 import { formatSalary } from "@/lib/utils";
-import { JOB_TYPE_COLORS } from "@/constants";
 import JobDetailClient from "./client";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import JsonLd from "@/components/JsonLd";
 
 export async function generateMetadata({
   params,
@@ -20,6 +21,10 @@ export async function generateMetadata({
     openGraph: {
       title: `${job.title} at ${job.company}`,
       description: `${job.job_type} position in ${job.location}`,
+      type: "website",
+    },
+    alternates: {
+      canonical: `/jobs/${job.id}`,
     },
   };
 }
@@ -33,7 +38,6 @@ export default async function JobDetailPage({
   const job = getJobById(Number(id));
   if (!job) notFound();
 
-  const badgeColor = JOB_TYPE_COLORS[job.job_type] || "bg-slate-100 text-slate-700";
   const salary = formatSalary(job.salary_min, job.salary_max);
 
   const jsonLd = {
@@ -43,14 +47,22 @@ export default async function JobDetailPage({
     description: job.description,
     datePosted: job.created_at,
     hiringOrganization: { "@type": "Organization", name: job.company },
-    jobLocation: { "@type": "Place", address: { "@type": "PostalAddress", addressLocality: job.location } },
+    jobLocation: {
+      "@type": "Place",
+      address: { "@type": "PostalAddress", addressLocality: job.location },
+    },
     employmentType: job.job_type.toUpperCase().replace("-", "_").replace(" ", "_"),
     ...(job.salary_min && job.salary_max
       ? {
           baseSalary: {
             "@type": "MonetaryAmount",
             currency: "USD",
-            value: { "@type": "QuantitativeValue", minValue: job.salary_min, maxValue: job.salary_max, unitText: "YEAR" },
+            value: {
+              "@type": "QuantitativeValue",
+              minValue: job.salary_min,
+              maxValue: job.salary_max,
+              unitText: "YEAR",
+            },
           },
         }
       : {}),
@@ -58,16 +70,15 @@ export default async function JobDetailPage({
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={jsonLd} />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumbs */}
-        <nav className="text-sm text-slate-500 mb-6">
-          <a href="/" className="hover:text-violet-600">Home</a>
-          <span className="mx-2">/</span>
-          <a href="/jobs" className="hover:text-violet-600">Jobs</a>
-          <span className="mx-2">/</span>
-          <span className="text-slate-900">{job.title}</span>
-        </nav>
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Jobs", href: "/jobs" },
+            { label: job.title },
+          ]}
+        />
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           {/* Header */}
@@ -85,7 +96,11 @@ export default async function JobDetailPage({
               <span className="px-3 py-1 rounded-full bg-white/20 text-sm font-medium">{job.location}</span>
               <span className="px-3 py-1 rounded-full bg-white/20 text-sm font-medium">{job.job_type}</span>
               <span className="px-3 py-1 rounded-full bg-white/20 text-sm font-medium">{job.category}</span>
-              {salary && <span className="px-3 py-1 rounded-full bg-amber-400/90 text-slate-900 text-sm font-semibold">{salary}</span>}
+              {salary && (
+                <span className="px-3 py-1 rounded-full bg-amber-400/90 text-slate-900 text-sm font-semibold">
+                  {salary}
+                </span>
+              )}
             </div>
           </div>
 

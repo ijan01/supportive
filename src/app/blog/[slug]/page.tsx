@@ -1,0 +1,98 @@
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getBlogPostBySlug, getAllBlogSlugs } from "@/lib/blog";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import JsonLd from "@/components/JsonLd";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getBlogPostBySlug(slug);
+  if (!post) return { title: "Post Not Found" };
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      type: "article",
+      publishedTime: post.published_at || undefined,
+      authors: [post.author],
+    },
+    alternates: {
+      canonical: `/blog/${post.slug}`,
+    },
+  };
+}
+
+export function generateStaticParams() {
+  return getAllBlogSlugs().map((slug) => ({ slug }));
+}
+
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const post = getBlogPostBySlug(slug);
+  if (!post) notFound();
+
+  const date = post.published_at
+    ? new Date(post.published_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    : "";
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    author: { "@type": "Person", name: post.author },
+    datePublished: post.published_at,
+    publisher: { "@type": "Organization", name: "JobBoard" },
+  };
+
+  // Render content as simple formatted text with h2 detection
+  const paragraphs = post.content.split("\n\n");
+
+  return (
+    <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <JsonLd data={jsonLd} />
+      <Breadcrumbs items={[
+        { label: "Home", href: "/" },
+        { label: "Blog", href: "/blog" },
+        { label: post.title },
+      ]} />
+
+      {/* Header */}
+      <header className="mb-10">
+        <div className="text-sm text-violet-600 font-semibold uppercase tracking-wide mb-3">{date}</div>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 leading-tight">{post.title}</h1>
+        <p className="text-xl text-slate-600 mb-6">{post.excerpt}</p>
+        <div className="flex items-center gap-3 pb-6 border-b border-slate-200">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white font-bold">
+            {post.author.charAt(0)}
+          </div>
+          <div>
+            <div className="font-semibold text-slate-900">{post.author}</div>
+            <div className="text-xs text-slate-500">Writer at JobBoard</div>
+          </div>
+        </div>
+      </header>
+
+      {/* Content */}
+      <div className="prose prose-slate max-w-none">
+        {paragraphs.map((para, i) => {
+          if (para.startsWith("## ")) {
+            return <h2 key={i} className="text-2xl font-bold text-slate-900 mt-8 mb-4">{para.slice(3)}</h2>;
+          }
+          return <p key={i} className="text-slate-600 leading-relaxed mb-4">{para}</p>;
+        })}
+      </div>
+    </article>
+  );
+}
