@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getJobs, createJob } from "@/lib/jobs";
-import { auth } from "../../../../auth";
+import { getSessionFromRequest } from "@/lib/session";
 import { JobFilters } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
+  const session = await getSessionFromRequest(request);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

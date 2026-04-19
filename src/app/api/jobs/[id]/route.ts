@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getJobById, updateJob, deleteJob } from "@/lib/jobs";
-import { auth } from "../../../../../auth";
+import { getSessionFromRequest } from "@/lib/session";
 
 export async function GET(
   _request: NextRequest,
@@ -20,7 +20,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
+  const session = await getSessionFromRequest(request);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -48,10 +48,10 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
+  const session = await getSessionFromRequest(request);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

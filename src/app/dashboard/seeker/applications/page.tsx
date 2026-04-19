@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "../../../../../auth";
+import { getSession } from "@/lib/session";
 import { getApplicationsByUserId } from "@/lib/applications";
 import { formatRelativeDate } from "@/lib/utils";
 import { APPLICATION_STATUS_COLORS } from "@/constants";
 
 export default async function ApplicationsPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user) redirect("/auth/login");
 
   const applications = await getApplicationsByUserId(Number(session.user.id));

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { saveJob, unsaveJob, getSavedJobs, isJobSaved } from "@/lib/saved-jobs";
-import { auth } from "../../../../auth";
+import { getSessionFromRequest } from "@/lib/session";
 
-export async function GET() {
-  const session = await auth();
+export async function GET(request: NextRequest) {
+  const session = await getSessionFromRequest(request);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -13,7 +13,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
+  const session = await getSessionFromRequest(request);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

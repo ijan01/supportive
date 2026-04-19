@@ -1,5 +1,5 @@
 import { redirect, notFound } from "next/navigation";
-import { auth } from "../../../../../../auth";
+import { getSession } from "@/lib/session";
 import { getJobById } from "@/lib/jobs";
 import PostJobForm from "@/components/PostJobForm";
 
@@ -8,7 +8,7 @@ export default async function EditJobPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user) redirect("/auth/login");
   if (session.user.role !== "company") redirect("/dashboard/seeker");
 

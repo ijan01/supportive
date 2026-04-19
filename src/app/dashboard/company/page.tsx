@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "../../../../auth";
+import { getSession } from "@/lib/session";
 import { getJobsByUserId } from "@/lib/jobs";
 import { formatRelativeDate, formatSalary } from "@/lib/utils";
 import { JOB_TYPE_COLORS } from "@/constants";
 import DeleteJobButton from "./DeleteJobButton";
 
 export default async function CompanyDashboard() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user) redirect("/auth/login");
   if (session.user.role !== "company") redirect("/dashboard/seeker");
 

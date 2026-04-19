@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "../../../../auth";
+import { getSession } from "@/lib/session";
 import { getSavedJobs } from "@/lib/saved-jobs";
 import { getApplicationsByUserId } from "@/lib/applications";
 import JobCard from "@/components/JobCard";
@@ -8,7 +8,7 @@ import { formatRelativeDate } from "@/lib/utils";
 import { APPLICATION_STATUS_COLORS } from "@/constants";
 
 export default async function SeekerDashboard() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user) redirect("/auth/login");
   if (session.user.role !== "seeker") redirect("/dashboard/company");
 
