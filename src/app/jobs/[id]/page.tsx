@@ -56,7 +56,7 @@ export default async function JobDetailPage({
       ? {
           baseSalary: {
             "@type": "MonetaryAmount",
-            currency: "USD",
+            currency: "AUD",
             value: {
               "@type": "QuantitativeValue",
               minValue: job.salary_min,

@@ -13,8 +13,8 @@ interface PostJobFormProps {
 export default function PostJobForm({ defaultCompany = "", existingJob }: PostJobFormProps) {
   const [title, setTitle] = useState(existingJob?.title || "");
   const [company, setCompany] = useState(existingJob?.company || defaultCompany);
-  const [location, setLocation] = useState(existingJob?.location || "Remote");
-  const [category, setCategory] = useState(existingJob?.category || "Engineering");
+  const [location, setLocation] = useState(existingJob?.location || "Sydney, NSW");
+  const [category, setCategory] = useState(existingJob?.category || JOB_CATEGORIES[0]);
   const [jobType, setJobType] = useState(existingJob?.job_type || "Full-time");
   const [salaryMin, setSalaryMin] = useState(existingJob?.salary_min?.toString() || "");
   const [salaryMax, setSalaryMax] = useState(existingJob?.salary_max?.toString() || "");
@@ -97,11 +97,11 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Salary Min (USD)</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Salary min (AUD)</label>
           <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="80000" className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Salary Max (USD)</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Salary max (AUD)</label>
           <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="120000" className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500" />
         </div>
       </div>

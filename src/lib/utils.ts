@@ -13,7 +13,7 @@ export function formatRelativeDate(dateString: string): string {
   if (diffDays === 1) return "yesterday";
   if (diffDays < 7) return `${diffDays}d ago`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return date.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export function formatSalary(min: number | null, max: number | null): string {

@@ -19,18 +19,32 @@ export const JOB_CATEGORIES = [
   "Human Resources",
 ] as const;
 
-export const LOCATIONS = [
-  "Remote",
-  "New York, NY",
-  "San Francisco, CA",
-  "Austin, TX",
-  "Seattle, WA",
-  "Chicago, IL",
-  "Los Angeles, CA",
-  "Boston, MA",
-  "Denver, CO",
-  "Miami, FL",
-] as const;
+export const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "ACT", "TAS", "NT"] as const;
+export type AUState = (typeof AU_STATES)[number];
+
+export interface Location {
+  name: string;
+  state: AUState | null;
+}
+
+export const AU_LOCATIONS: Location[] = [
+  { name: "Sydney, NSW", state: "NSW" },
+  { name: "Melbourne, VIC", state: "VIC" },
+  { name: "Brisbane, QLD", state: "QLD" },
+  { name: "Perth, WA", state: "WA" },
+  { name: "Adelaide, SA", state: "SA" },
+  { name: "Canberra, ACT", state: "ACT" },
+  { name: "Hobart, TAS", state: "TAS" },
+  { name: "Darwin, NT", state: "NT" },
+  { name: "Newcastle, NSW", state: "NSW" },
+  { name: "Wollongong, NSW", state: "NSW" },
+  { name: "Gold Coast, QLD", state: "QLD" },
+  { name: "Geelong, VIC", state: "VIC" },
+  { name: "Remote (Australia)", state: null },
+  { name: "Hybrid", state: null },
+];
+
+export const LOCATIONS = AU_LOCATIONS.map((l) => l.name) as unknown as readonly string[];
 
 export const JOB_TYPE_COLORS: Record<string, string> = {
   "Full-time": "bg-violet-100 text-violet-700",

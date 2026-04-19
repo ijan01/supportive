@@ -48,7 +48,7 @@ export default async function Home() {
                 <Link key={post.id} href={`/blog/${post.slug}`} className="group">
                   <article className="bg-slate-50 rounded-xl p-6 hover:shadow-lg transition-all">
                     <div className="text-sm text-violet-600 font-medium mb-2">
-                      {new Date(post.published_at!).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                      {new Date(post.published_at!).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
                     </div>
                     <h3 className="text-lg font-semibold text-slate-900 group-hover:text-violet-600 transition-colors mb-2">
                       {post.title}
