@@ -1,14 +1,17 @@
-import { Pool, QueryResult } from "pg";
+import postgres from "postgres";
 
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
+const db = postgres(process.env.POSTGRES_URL!, {
   ssl: { rejectUnauthorized: false },
   max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  idle_timeout: 30,
+  connect_timeout: 5,
 });
 
-export async function sql(strings: TemplateStringsArray, ...values: unknown[]): Promise<QueryResult> {
+export async function sql(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ rows: any[]; rowCount: number }> {
   let query = "";
   const params: unknown[] = [];
   strings.forEach((str, i) => {
@@ -18,5 +21,11 @@ export async function sql(strings: TemplateStringsArray, ...values: unknown[]): 
       query += `$${params.length}`;
     }
   });
-  return pool.query(query, params);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = await db.unsafe(query, params as any[]);
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rows: result as any[],
+    rowCount: result.count,
+  };
 }
