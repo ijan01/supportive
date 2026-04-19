@@ -12,13 +12,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "JobBoard — Find Your Next Opportunity",
-    template: "%s | JobBoard",
+    default: "Supportive — Mental health and supportive services careers",
+    template: "%s | Supportive",
   },
-  description: "Discover thousands of job opportunities from top companies. Search, apply, and land your dream job today.",
+  description: "Mental health and supportive services careers, Australia-wide.",
   openGraph: {
-    title: "JobBoard — Find Your Next Opportunity",
-    description: "Discover thousands of job opportunities from top companies.",
+    title: "Supportive — Mental health and supportive services careers",
+    description: "Mental health and supportive services careers, Australia-wide.",
     type: "website",
   },
 };

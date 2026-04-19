@@ -60,7 +60,7 @@ export default async function BlogPostPage({
     description: post.excerpt,
     author: { "@type": "Person", name: post.author },
     datePublished: post.published_at,
-    publisher: { "@type": "Organization", name: "JobBoard" },
+    publisher: { "@type": "Organization", name: "Supportive" },
   };
 
   // Render content as simple formatted text with h2 detection
@@ -86,7 +86,7 @@ export default async function BlogPostPage({
           </div>
           <div>
             <div className="font-semibold text-slate-900">{post.author}</div>
-            <div className="text-xs text-slate-500">Writer at JobBoard</div>
+            <div className="text-xs text-slate-500">Writer at Supportive</div>
           </div>
         </div>
       </header>

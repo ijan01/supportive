@@ -65,8 +65,8 @@ export default async function Home() {
       {/* CTA */}
       <section className="py-20 bg-gradient-to-r from-violet-600 to-purple-600 text-white text-center">
         <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to Find Your Next Role?</h2>
-          <p className="text-purple-100 text-lg mb-8">Join thousands of professionals who found their dream job through JobBoard.</p>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to find your next role?</h2>
+          <p className="text-purple-100 text-lg mb-8">Browse mental health and supportive services roles posted by mission-aligned employers across Australia.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/jobs" className="px-8 py-3.5 rounded-full bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300 transition-all shadow-lg">
               Browse Jobs

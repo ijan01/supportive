@@ -22,11 +22,11 @@ export default function Hero() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-            Find Your{" "}
-            <span className="text-amber-300">Dream Job</span>
+            Find your next role in{" "}
+            <span className="text-amber-300">mental health</span>
           </h1>
           <p className="text-lg sm:text-xl text-purple-100 mb-10 max-w-2xl mx-auto">
-            Discover thousands of opportunities from top companies. Your next career move starts here.
+            Roles across clinical mental health, AOD, peer work, NDIS, and community services. Posted by mission-aligned employers.
           </p>
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
             <input

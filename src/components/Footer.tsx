@@ -6,11 +6,14 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent mb-4">
-              JobBoard
-            </h3>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg leading-none">S</span>
+              <h3 className="text-xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
+                Supportive
+              </h3>
+            </div>
             <p className="text-slate-400 text-sm">
-              Find your dream job or hire the perfect candidate. Your next opportunity starts here.
+              Mental health and supportive services careers, Australia-wide.
             </p>
           </div>
           <div>
@@ -37,7 +40,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-slate-700 mt-8 pt-8 text-center text-sm text-slate-500">
-          &copy; {new Date().getFullYear()} JobBoard. All rights reserved.
+          &copy; {new Date().getFullYear()} Supportive. All rights reserved.
         </div>
       </div>
     </footer>

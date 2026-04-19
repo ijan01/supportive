@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "Career Blog",
   description: "Career advice, job search tips, and insights for professionals and hiring managers.",
   openGraph: {
-    title: "Career Blog | JobBoard",
+    title: "Career Blog | Supportive",
     description: "Career advice, job search tips, and insights for professionals.",
   },
 };
