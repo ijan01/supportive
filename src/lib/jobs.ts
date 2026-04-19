@@ -95,3 +95,15 @@ export async function getAllJobIds(): Promise<number[]> {
   const result = await sql`SELECT id FROM jobs`;
   return result.rows.map((r) => r.id as number);
 }
+
+export async function getJobCountByRoleAndLocation(
+  roleName: string,
+  locationName: string
+): Promise<number> {
+  await ensureInitialized();
+  const result = await sql`
+    SELECT COUNT(*)::integer as count FROM jobs
+    WHERE category = ${roleName} AND location = ${locationName}
+  `;
+  return (result.rows[0]?.count as number) ?? 0;
+}

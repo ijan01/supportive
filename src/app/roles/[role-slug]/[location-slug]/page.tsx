@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
 import { MH_ROLES, AU_LOCATIONS } from "@/constants";
+import { shouldNoindex } from "@/lib/noindex";
+import { getJobCountByRoleAndLocation } from "@/lib/jobs";
 
 export function generateStaticParams() {
   return MH_ROLES.flatMap((role) =>
@@ -21,10 +23,26 @@ export async function generateMetadata({
   const role = MH_ROLES.find((r) => r.slug === p["role-slug"]);
   const loc = AU_LOCATIONS.find((l) => l.slug === p["location-slug"]);
   if (!role || !loc) return { title: "Not found" };
+
+  let listingsCount = 0;
+  try {
+    listingsCount = await getJobCountByRoleAndLocation(role.name, loc.name);
+  } catch {
+    // DB not available at build time — default to noindex
+  }
+
+  const noindex = shouldNoindex({
+    listingsCount,
+    historicalCount: 0,
+    contentWordCount: 0, // placeholder body; update when real content is added
+    hasCustomMeta: false, // templated description; update when custom copy is written
+  });
+
   return {
     title: `${role.name} jobs in ${loc.name}`,
     description: `Browse ${role.name} roles in ${loc.name}. Find opportunities with mission-aligned mental health employers on Supportive.`,
     alternates: { canonical: `/roles/${p["role-slug"]}/${p["location-slug"]}` },
+    ...(noindex && { robots: { index: false, follow: true } }),
   };
 }
 

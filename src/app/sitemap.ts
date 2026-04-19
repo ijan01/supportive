@@ -27,15 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // /roles/[role-slug]/[location-slug] — Layer 2, noindex threshold applied elsewhere
-  const roleLocationRoutes: MetadataRoute.Sitemap = MH_ROLES.flatMap((role) =>
-    AU_LOCATIONS.map((loc) => ({
-      url: `${baseUrl}/roles/${role.slug}/${loc.slug}`,
-      lastModified: new Date(),
-      changeFrequency: "daily" as const,
-      priority: 0.6,
-    }))
-  );
+  // /roles/[role-slug]/[location-slug] — Layer 2, excluded until noindex threshold is met
 
   // /locations/[location-slug]
   const locationRoutes: MetadataRoute.Sitemap = AU_LOCATIONS.map((loc) => ({
@@ -83,7 +75,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticRoutes,
     ...roleRoutes,
-    ...roleLocationRoutes,
     ...locationRoutes,
     ...specialtyRoutes,
     ...jobRoutes,
