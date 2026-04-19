@@ -23,7 +23,10 @@ export default function Navbar() {
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
             <Link href="/jobs" className="text-slate-600 hover:text-violet-600 font-medium transition-colors">
-              Browse Jobs
+              Browse roles
+            </Link>
+            <Link href="/roles" className="text-slate-600 hover:text-violet-600 font-medium transition-colors">
+              Role types
             </Link>
             <Link href="/blog" className="text-slate-600 hover:text-violet-600 font-medium transition-colors">
               Blog
@@ -77,7 +80,10 @@ export default function Navbar() {
         {menuOpen && (
           <div className="md:hidden pb-4 space-y-2">
             <Link href="/jobs" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
-              Browse Jobs
+              Browse roles
+            </Link>
+            <Link href="/roles" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
+              Role types
             </Link>
             <Link href="/blog" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
               Blog
