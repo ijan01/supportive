@@ -10,8 +10,8 @@ export async function getJobs(filters?: JobFilters): Promise<Job[]> {
 
   const result = await sql`
     SELECT * FROM jobs
-    WHERE
-      (${search}::text IS NULL OR title ILIKE ${search} OR company ILIKE ${search})
+    WHERE status = 'active'
+      AND (${search}::text IS NULL OR title ILIKE ${search} OR company ILIKE ${search})
       AND (${location}::text IS NULL OR location = ${location})
       AND (${category}::text IS NULL OR category = ${category})
       AND (${jobType}::text IS NULL OR job_type = ${jobType})
@@ -22,13 +22,13 @@ export async function getJobs(filters?: JobFilters): Promise<Job[]> {
 
 export async function getJobById(id: number): Promise<Job | undefined> {
   await ensureInitialized();
-  const result = await sql`SELECT * FROM jobs WHERE id = ${id}`;
+  const result = await sql`SELECT * FROM jobs WHERE id = ${id} AND status = 'active'`;
   return result.rows[0] as Job | undefined;
 }
 
 export async function getFeaturedJobs(limit = 6): Promise<Job[]> {
   await ensureInitialized();
-  const result = await sql`SELECT * FROM jobs WHERE is_featured = 1 ORDER BY created_at DESC LIMIT ${limit}`;
+  const result = await sql`SELECT * FROM jobs WHERE is_featured = 1 AND status = 'active' ORDER BY created_at DESC LIMIT ${limit}`;
   return result.rows as Job[];
 }
 
@@ -48,10 +48,10 @@ export async function getJobsByUserId(userId: number): Promise<JobWithApplicatio
 export async function createJob(userId: number, input: CreateJobInput): Promise<Job> {
   await ensureInitialized();
   const result = await sql`
-    INSERT INTO jobs (user_id, title, company, location, category, job_type, salary_min, salary_max, description, requirements, apply_url)
+    INSERT INTO jobs (user_id, title, company, location, category, job_type, salary_min, salary_max, description, requirements, apply_url, source, status, employer_name, posted_date, valid_through)
     VALUES (${userId}, ${input.title}, ${input.company}, ${input.location}, ${input.category}, ${input.job_type},
             ${input.salary_min || null}, ${input.salary_max || null}, ${input.description}, ${input.requirements},
-            ${input.apply_url || null})
+            ${input.apply_url || null}, 'manual', 'active', ${input.company}, NOW(), NOW() + INTERVAL '30 days')
     RETURNING *
   `;
   return result.rows[0] as Job;
@@ -71,6 +71,7 @@ export async function updateJob(id: number, userId: number, input: CreateJobInpu
       description = ${input.description},
       requirements = ${input.requirements},
       apply_url = ${input.apply_url || null},
+      employer_name = ${input.company},
       updated_at = NOW()
     WHERE id = ${id} AND user_id = ${userId}
     RETURNING *
@@ -86,13 +87,13 @@ export async function deleteJob(id: number, userId: number): Promise<boolean> {
 
 export async function getRecentJobs(limit = 10): Promise<Job[]> {
   await ensureInitialized();
-  const result = await sql`SELECT * FROM jobs ORDER BY created_at DESC LIMIT ${limit}`;
+  const result = await sql`SELECT * FROM jobs WHERE status = 'active' ORDER BY created_at DESC LIMIT ${limit}`;
   return result.rows as Job[];
 }
 
 export async function getAllJobIds(): Promise<number[]> {
   await ensureInitialized();
-  const result = await sql`SELECT id FROM jobs`;
+  const result = await sql`SELECT id FROM jobs WHERE status = 'active'`;
   return result.rows.map((r) => r.id as number);
 }
 
@@ -103,7 +104,7 @@ export async function getJobCountByRoleAndLocation(
   await ensureInitialized();
   const result = await sql`
     SELECT COUNT(*)::integer as count FROM jobs
-    WHERE category = ${roleName} AND location = ${locationName}
+    WHERE category = ${roleName} AND location = ${locationName} AND status = 'active'
   `;
   return (result.rows[0]?.count as number) ?? 0;
 }

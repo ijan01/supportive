@@ -11,9 +11,13 @@ export interface UserRow extends User {
   password_hash: string;
 }
 
+export type JobSource = "adzuna" | "direct" | "manual";
+export type JobStatus = "active" | "expired" | "review_queue" | "rejected";
+export type EmploymentType = "full_time" | "part_time" | "contract" | "casual" | "internship" | "volunteer";
+
 export interface Job {
   id: number;
-  user_id: number;
+  user_id: number | null;
   title: string;
   company: string;
   location: string;
@@ -22,11 +26,28 @@ export interface Job {
   salary_min: number | null;
   salary_max: number | null;
   description: string;
-  requirements: string;
+  requirements: string | null;
   apply_url: string | null;
   is_featured: number;
   created_at: string;
   updated_at: string;
+  // Feed integration fields
+  external_id: string | null;
+  source: JobSource;
+  role_slug: string | null;
+  role_confidence: number | null;
+  employer_name: string | null;
+  employer_slug: string | null;
+  location_city: string | null;
+  location_state: string | null;
+  is_remote: boolean;
+  is_hybrid: boolean;
+  employment_type: EmploymentType | null;
+  salary_is_predicted: boolean;
+  posted_date: string | null;
+  valid_through: string | null;
+  status: JobStatus;
+  raw_payload: unknown | null;
 }
 
 export interface JobWithApplicationCount extends Job {
@@ -75,6 +96,22 @@ export interface SavedJob {
   user_id: number;
   job_id: number;
   created_at: string;
+}
+
+export interface FeedRun {
+  id: number;
+  started_at: string;
+  finished_at: string | null;
+  status: "running" | "completed" | "failed";
+  total_fetched: number;
+  total_deduped: number;
+  total_filtered: number;
+  total_classified: number;
+  total_published: number;
+  total_queued: number;
+  total_rejected: number;
+  error: string | null;
+  metadata: unknown | null;
 }
 
 export interface BlogPost {

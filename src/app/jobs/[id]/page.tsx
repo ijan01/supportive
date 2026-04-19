@@ -87,10 +87,12 @@ export default async function JobDetailPage({
               <div className="text-slate-600 leading-relaxed whitespace-pre-wrap">{job.description}</div>
             </section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Requirements</h2>
-              <div className="text-slate-600 leading-relaxed whitespace-pre-wrap">{job.requirements}</div>
-            </section>
+            {job.requirements && (
+              <section className="mb-8">
+                <h2 className="text-xl font-bold text-slate-900 mb-4">Requirements</h2>
+                <div className="text-slate-600 leading-relaxed whitespace-pre-wrap">{job.requirements}</div>
+              </section>
+            )}
 
             {job.apply_url && (
               <a
