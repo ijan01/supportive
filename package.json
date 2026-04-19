@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed": "tsx db/seed.ts",
-    "test": "tsx --test src/lib/noindex.test.ts src/lib/feeds/adzuna.test.ts src/lib/feeds/classifier.test.ts"
+    "test": "tsx --test src/lib/noindex.test.ts src/lib/feeds/adzuna.test.ts src/lib/feeds/classifier.test.ts src/lib/feeds/ingest.test.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

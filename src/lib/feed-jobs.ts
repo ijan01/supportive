@@ -1,5 +1,5 @@
 import { sql, ensureInitialized } from "./db";
-import { Job, JobStatus } from "./types";
+import { Job, JobStatus, FeedRun } from "./types";
 import { MH_ROLES } from "@/constants";
 
 export async function getJobsByStatus(status: JobStatus, limit = 100): Promise<Job[]> {
@@ -28,4 +28,12 @@ export async function remapJobRole(id: number, roleSlug: string): Promise<void> 
       updated_at = NOW()
     WHERE id = ${id}
   `;
+}
+
+export async function getRecentFeedRuns(limit = 30): Promise<FeedRun[]> {
+  await ensureInitialized();
+  const result = await sql`
+    SELECT * FROM feed_runs ORDER BY started_at DESC LIMIT ${limit}
+  `;
+  return result.rows as FeedRun[];
 }
