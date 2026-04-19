@@ -4,10 +4,19 @@ import { sql } from "../../../../db";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const rawUrl = process.env.POSTGRES_URL || "";
+  let urlHost = "(not set)";
+  try {
+    if (rawUrl) urlHost = new URL(rawUrl).hostname;
+  } catch {
+    urlHost = "(invalid URL format)";
+  }
+
   const checks: Record<string, unknown> = {
     timestamp: new Date().toISOString(),
     env: {
-      POSTGRES_URL: !!process.env.POSTGRES_URL,
+      POSTGRES_URL: !!rawUrl,
+      POSTGRES_URL_host: urlHost,
       NEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
       NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "(not set)",
     },
