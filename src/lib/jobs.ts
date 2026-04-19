@@ -28,7 +28,28 @@ export async function getJobById(id: number): Promise<Job | undefined> {
 
 export async function getFeaturedJobs(limit = 6): Promise<Job[]> {
   await ensureInitialized();
-  const result = await sql`SELECT * FROM jobs WHERE is_featured = 1 AND status = 'active' ORDER BY created_at DESC LIMIT ${limit}`;
+  const result = await sql`
+    SELECT * FROM jobs WHERE status = 'active'
+    ORDER BY is_featured DESC, posted_date DESC NULLS LAST, created_at DESC
+    LIMIT ${limit}
+  `;
+  return result.rows as Job[];
+}
+
+export async function getJobsByRoleAndLocation(
+  roleName: string,
+  locationName: string,
+  limit = 20
+): Promise<Job[]> {
+  await ensureInitialized();
+  const result = await sql`
+    SELECT * FROM jobs
+    WHERE status = 'active'
+      AND category = ${roleName}
+      AND location = ${locationName}
+    ORDER BY posted_date DESC NULLS LAST, created_at DESC
+    LIMIT ${limit}
+  `;
   return result.rows as Job[];
 }
 

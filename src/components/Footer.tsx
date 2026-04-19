@@ -42,8 +42,15 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        <div className="border-t border-slate-700 mt-8 pt-8 text-center text-sm text-slate-500">
-          &copy; {new Date().getFullYear()} Supportive. All rights reserved.
+        <div className="border-t border-slate-700 mt-8 pt-8 space-y-3 text-center text-sm text-slate-500">
+          <p>Jobs aggregated from Adzuna and direct employer feeds. Apply links go to the original posting source.</p>
+          <p>
+            Powered by{" "}
+            <a href="https://www.adzuna.com.au" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-violet-400 transition-colors">
+              Adzuna
+            </a>
+          </p>
+          <p>&copy; {new Date().getFullYear()} Supportive. All rights reserved.</p>
         </div>
       </div>
     </footer>
