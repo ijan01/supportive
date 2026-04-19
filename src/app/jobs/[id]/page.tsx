@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getJobById } from "@/lib/jobs";
 import { formatSalary } from "@/lib/utils";
+import { buildJobPostingSchema } from "@/lib/jsonld";
 import JobDetailClient from "./client";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
@@ -39,34 +40,7 @@ export default async function JobDetailPage({
   if (!job) notFound();
 
   const salary = formatSalary(job.salary_min, job.salary_max);
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "JobPosting",
-    title: job.title,
-    description: job.description,
-    datePosted: job.created_at,
-    hiringOrganization: { "@type": "Organization", name: job.company },
-    jobLocation: {
-      "@type": "Place",
-      address: { "@type": "PostalAddress", addressLocality: job.location },
-    },
-    employmentType: job.job_type.toUpperCase().replace("-", "_").replace(" ", "_"),
-    ...(job.salary_min && job.salary_max
-      ? {
-          baseSalary: {
-            "@type": "MonetaryAmount",
-            currency: "AUD",
-            value: {
-              "@type": "QuantitativeValue",
-              minValue: job.salary_min,
-              maxValue: job.salary_max,
-              unitText: "YEAR",
-            },
-          },
-        }
-      : {}),
-  };
+  const jsonLd = buildJobPostingSchema(job);
 
   return (
     <>
