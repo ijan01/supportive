@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { JOB_TYPES, JOB_CATEGORIES, LOCATIONS } from "@/constants";
+import { JOB_TYPES, MH_ROLES, MH_ROLE_GROUPS, AU_LOCATIONS } from "@/constants";
 
 export default function JobFilters() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function JobFilters() {
       <div className="flex flex-col sm:flex-row gap-3">
         <input
           type="text"
-          placeholder="Search jobs..."
+          placeholder="Search roles or organisations..."
           defaultValue={search}
           onKeyDown={(e) => {
             if (e.key === "Enter") updateParams("search", e.currentTarget.value);
@@ -45,9 +45,9 @@ export default function JobFilters() {
           onChange={(e) => updateParams("location", e.target.value)}
           className="px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
         >
-          <option value="">All Locations</option>
-          {LOCATIONS.map((loc) => (
-            <option key={loc} value={loc}>{loc}</option>
+          <option value="">All locations</option>
+          {AU_LOCATIONS.map((loc) => (
+            <option key={loc.name} value={loc.name}>{loc.name}</option>
           ))}
         </select>
         <select
@@ -55,9 +55,13 @@ export default function JobFilters() {
           onChange={(e) => updateParams("category", e.target.value)}
           className="px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
         >
-          <option value="">All Categories</option>
-          {JOB_CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
+          <option value="">All roles</option>
+          {MH_ROLE_GROUPS.map((group) => (
+            <optgroup key={group.slug} label={group.label}>
+              {MH_ROLES.filter((r) => r.group === group.slug).map((role) => (
+                <option key={role.slug} value={role.name}>{role.name}</option>
+              ))}
+            </optgroup>
           ))}
         </select>
         <select
@@ -65,7 +69,7 @@ export default function JobFilters() {
           onChange={(e) => updateParams("job_type", e.target.value)}
           className="px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
         >
-          <option value="">All Types</option>
+          <option value="">All types</option>
           {JOB_TYPES.map((type) => (
             <option key={type} value={type}>{type}</option>
           ))}

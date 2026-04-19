@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { JOB_TYPES, JOB_CATEGORIES, LOCATIONS } from "@/constants";
+import { JOB_TYPES, MH_ROLES, MH_ROLE_GROUPS, AU_LOCATIONS } from "@/constants";
 import { Job } from "@/lib/types";
 
 interface PostJobFormProps {
@@ -14,7 +14,7 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
   const [title, setTitle] = useState(existingJob?.title || "");
   const [company, setCompany] = useState(existingJob?.company || defaultCompany);
   const [location, setLocation] = useState(existingJob?.location || "Sydney, NSW");
-  const [category, setCategory] = useState(existingJob?.category || JOB_CATEGORIES[0]);
+  const [category, setCategory] = useState(existingJob?.category || MH_ROLES[0].name);
   const [jobType, setJobType] = useState(existingJob?.job_type || "Full-time");
   const [salaryMin, setSalaryMin] = useState(existingJob?.salary_min?.toString() || "");
   const [salaryMax, setSalaryMax] = useState(existingJob?.salary_max?.toString() || "");
@@ -78,13 +78,19 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Location *</label>
           <select value={location} onChange={(e) => setLocation(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
-            {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+            {AU_LOCATIONS.map((l) => <option key={l.name} value={l.name}>{l.name}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Category *</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Role category *</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
-            {JOB_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {MH_ROLE_GROUPS.map((group) => (
+              <optgroup key={group.slug} label={group.label}>
+                {MH_ROLES.filter((r) => r.group === group.slug).map((role) => (
+                  <option key={role.slug} value={role.name}>{role.name}</option>
+                ))}
+              </optgroup>
+            ))}
           </select>
         </div>
         <div>

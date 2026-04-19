@@ -8,8 +8,8 @@ import JobList from "@/components/JobList";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Browse Jobs",
-  description: "Search and filter through hundreds of job opportunities from top companies.",
+  title: "Browse roles",
+  description: "Browse mental health and supportive services roles across Australia. Filter by role type, location, and employment type.",
 };
 
 export default async function JobsPage({
@@ -29,8 +29,8 @@ export default async function JobsPage({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Browse Jobs</h1>
-        <p className="text-slate-500">Find your next opportunity from top companies.</p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Browse roles</h1>
+        <p className="text-slate-500">Mental health and supportive services roles across Australia.</p>
       </div>
       <div className="mb-6">
         <Suspense fallback={<div className="h-14 bg-white rounded-xl animate-pulse" />}>
