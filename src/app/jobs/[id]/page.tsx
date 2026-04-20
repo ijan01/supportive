@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getJobById } from "@/lib/jobs";
+import { getSession } from "@/lib/session";
 import { formatSalary } from "@/lib/utils";
 import { buildJobPostingSchema } from "@/lib/jsonld";
 import JobDetailClient from "./client";
@@ -41,6 +42,7 @@ export default async function JobDetailPage({
 
   const salary = formatSalary(job.salary_min, job.salary_max);
   const jsonLd = buildJobPostingSchema(job);
+  const session = await getSession();
 
   return (
     <>
@@ -80,7 +82,7 @@ export default async function JobDetailPage({
 
           {/* Body */}
           <div className="p-8 sm:p-10">
-            <JobDetailClient jobId={job.id} jobTitle={job.title} />
+            <JobDetailClient jobId={job.id} jobTitle={job.title} userRole={session?.user?.role ?? null} />
 
             <section className="mb-8">
               <h2 className="text-xl font-bold text-slate-900 mb-4">Job Description</h2>
