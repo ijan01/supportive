@@ -40,7 +40,12 @@ export default function JobCard({ job }: { job: Job }) {
           <span className="font-semibold text-slate-700">
             {formatSalary(job.salary_min, job.salary_max) || "Salary not listed"}
           </span>
-          <span className="text-slate-400">{formatRelativeDate(job.created_at)}</span>
+          <div className="flex items-center gap-2">
+            {job.apply_url && (
+              <span className="text-xs text-slate-400">External</span>
+            )}
+            <span className="text-slate-400">{formatRelativeDate(job.created_at)}</span>
+          </div>
         </div>
       </div>
     </Link>

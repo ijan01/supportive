@@ -50,7 +50,7 @@ export default function RegisterPage() {
               }`}
             >
               <div className="font-semibold text-slate-900">Employer</div>
-              <div className="text-xs text-slate-500 mt-1">Hire talent</div>
+              <div className="text-xs text-slate-500 mt-1">Post roles — free</div>
             </button>
           </div>
 

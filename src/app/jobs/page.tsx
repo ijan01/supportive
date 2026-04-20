@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { getJobs, getJobCount } from "@/lib/jobs";
+import { getSession } from "@/lib/session";
 import { JobFilters as JobFiltersType } from "@/lib/types";
 import JobFilters from "@/components/JobFilters";
 import JobList from "@/components/JobList";
@@ -29,8 +30,9 @@ export default async function JobsPage({
   if (params.category) filters.category = params.category;
   if (params.job_type) filters.job_type = params.job_type;
 
-  const [jobs, total] = await Promise.all([getJobs(filters), getJobCount(filters)]);
+  const [jobs, total, session] = await Promise.all([getJobs(filters), getJobCount(filters), getSession()]);
   const totalPages = Math.ceil(total / PAGE_SIZE);
+  const isAnonymous = !session?.user;
 
   function pageUrl(p: number) {
     const q = new URLSearchParams();
@@ -58,6 +60,13 @@ export default async function JobsPage({
           <JobFilters />
         </Suspense>
       </div>
+      {isAnonymous && (
+        <div className="mb-6 flex items-center justify-between rounded-xl bg-violet-50 border border-violet-100 px-5 py-3">
+          <p className="text-sm text-violet-700">
+            <Link href="/auth/register" className="font-semibold underline hover:text-violet-900">Create a free account</Link> to save roles and track your applications.
+          </p>
+        </div>
+      )}
       <JobList jobs={jobs} />
 
       {totalPages > 1 && (

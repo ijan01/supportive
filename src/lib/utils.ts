@@ -22,9 +22,9 @@ export function formatSalary(min: number | null, max: number | null): string {
     if (n >= 1000) return `$${Math.round(n / 1000)}k`;
     return `$${n}`;
   };
-  if (min && max) return `${format(min)} - ${format(max)}`;
-  if (min) return `From ${format(min)}`;
-  return `Up to ${format(max!)}`;
+  if (min && max) return `${format(min)} – ${format(max)} AUD`;
+  if (min) return `From ${format(min)} AUD`;
+  return `Up to ${format(max!)} AUD`;
 }
 
 export function slugify(text: string): string {

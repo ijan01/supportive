@@ -52,7 +52,7 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save job");
 
-      router.push("/dashboard/company");
+      router.push("/dashboard/company?posted=1");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -123,8 +123,9 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">External Apply URL</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">External apply URL</label>
         <input type="url" value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="https://..." className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500" />
+        <p className="text-xs text-slate-400 mt-1">If provided, the "Apply" button links to this URL. Leave blank and candidates will apply directly through Supportive.</p>
       </div>
 
       <div className="flex gap-3 pt-2">

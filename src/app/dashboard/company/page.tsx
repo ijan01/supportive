@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
@@ -5,6 +6,7 @@ import { getJobsByUserId } from "@/lib/jobs";
 import { formatRelativeDate, formatSalary } from "@/lib/utils";
 import { JOB_TYPE_COLORS } from "@/constants";
 import DeleteJobButton from "./DeleteJobButton";
+import SuccessToast from "./SuccessToast";
 
 export default async function CompanyDashboard() {
   const session = await getSession();
@@ -15,6 +17,7 @@ export default async function CompanyDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Suspense><SuccessToast /></Suspense>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Employer dashboard</h1>
