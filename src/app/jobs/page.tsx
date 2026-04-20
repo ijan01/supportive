@@ -6,6 +6,7 @@ import { getSession } from "@/lib/session";
 import { JobFilters as JobFiltersType } from "@/lib/types";
 import JobFilters from "@/components/JobFilters";
 import JobList from "@/components/JobList";
+import SaveSearchButton from "@/components/SaveSearchButton";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,13 @@ export default async function JobsPage({
           <JobFilters />
         </Suspense>
       </div>
+      {!isAnonymous && (
+        <div className="mb-4 flex justify-end">
+          <Suspense>
+            <SaveSearchButton />
+          </Suspense>
+        </div>
+      )}
       {isAnonymous && (
         <div className="mb-6 rounded-2xl bg-lavender border border-violet-100 px-6 py-4">
           <p className="text-sm text-violet-700">

@@ -118,6 +118,17 @@ export interface FeedRun {
   metadata: unknown | null;
 }
 
+export interface SavedSearch {
+  id: number;
+  user_id: number;
+  name: string;
+  search: string | null;
+  location: string | null;
+  category: string | null;
+  job_type: string | null;
+  created_at: string;
+}
+
 export interface BlogPost {
   id: number;
   title: string;

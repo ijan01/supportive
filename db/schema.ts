@@ -131,6 +131,20 @@ export async function initSchema(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_saved_jobs_user_id ON saved_jobs(user_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug)`;
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS saved_searches (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      name TEXT NOT NULL,
+      search TEXT,
+      location TEXT,
+      category TEXT,
+      job_type TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_saved_searches_user_id ON saved_searches(user_id)`;
+
   initialized = true;
 }
 
