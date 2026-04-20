@@ -25,7 +25,7 @@ export default async function Home() {
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
               Find your next role in{" "}
-              <span className="text-highlight">three simple steps</span>
+              <span className="text-highlight">three&nbsp;simple&nbsp;steps</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -69,7 +69,7 @@ export default async function Home() {
                 </span>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
                   Take a look at{" "}
-                  <span className="text-highlight">recent openings</span>
+                  <span className="text-highlight">recent&nbsp;openings</span>
                 </h2>
               </div>
               <Link href="/jobs" className="px-6 py-2.5 rounded-full border border-violet-200 text-violet-600 font-medium hover:bg-violet-50 transition-all text-sm shrink-0">
@@ -94,7 +94,7 @@ export default async function Home() {
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
               Built specifically for{" "}
-              <span className="text-highlight">mental health careers</span>
+              <span className="text-highlight">mental&nbsp;health&nbsp;careers</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -204,7 +204,7 @@ export default async function Home() {
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
             Ready to find your{" "}
-            <span className="text-highlight">next role?</span>
+            <span className="text-highlight">next&nbsp;role?</span>
           </h2>
           <p className="text-slate-500 text-lg mb-8 max-w-xl mx-auto">
             Browse mental health and supportive services roles posted by mission-aligned employers across Australia.

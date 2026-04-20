@@ -18,7 +18,7 @@ export default function EmployersPage() {
           </span>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-6">
             Hire the people who{" "}
-            <span className="text-highlight">make a difference</span>
+            <span className="text-highlight">make&nbsp;a&nbsp;difference</span>
           </h1>
           <p className="text-slate-500 text-lg mb-10 max-w-2xl mx-auto">
             Supportive is built for mental health, AOD, NDIS, and community services employers. Reach candidates who are specifically looking for roles like yours.
@@ -83,7 +83,7 @@ export default function EmployersPage() {
               How it works
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-              Get started in <span className="text-highlight">three steps</span>
+              Get started in <span className="text-highlight">three&nbsp;steps</span>
             </h2>
           </div>
           <ol className="space-y-8">
