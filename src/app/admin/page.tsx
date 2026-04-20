@@ -1,34 +1,38 @@
 import Link from "next/link";
 import { getAdminStats } from "@/lib/admin";
 import { getContentPlanStats } from "@/lib/content-plan";
+import { sql, ensureInitialized } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+async function getBlogStats() {
+  await ensureInitialized();
+  const [total, published, drafts] = await Promise.all([
+    sql`SELECT COUNT(*)::int AS count FROM blog_posts`,
+    sql`SELECT COUNT(*)::int AS count FROM blog_posts WHERE published_at IS NOT NULL`,
+    sql`SELECT COUNT(*)::int AS count FROM blog_posts WHERE published_at IS NULL`,
+  ]);
+  return { total: total.rows[0].count, published: published.rows[0].count, drafts: drafts.rows[0].count };
+}
+
 export default async function AdminDashboard() {
-  const [stats, contentStats] = await Promise.all([
+  const [stats, contentStats, blogStats] = await Promise.all([
     getAdminStats(),
     getContentPlanStats().catch(() => ({} as Record<string, number>)),
+    getBlogStats().catch(() => ({ total: 0, published: 0, drafts: 0 })),
   ]);
+
+  const contentTotal = Object.values(contentStats).reduce((a, b) => a + b, 0);
+  const contentPublished = contentStats["Published"] || 0;
   const contentActionable = (contentStats["Planned"] || 0) + (contentStats["Brief Ready"] || 0);
 
-  const cards = [
+  const statCards = [
     { label: "Total users", value: stats.totalUsers, href: "/admin/users" },
     { label: "Companies", value: stats.companiesCount, href: "/admin/companies" },
-    { label: "Total jobs", value: stats.totalJobs, href: "/admin/jobs" },
     { label: "Active jobs", value: stats.activeJobs, href: "/admin/jobs?status=active" },
     { label: "Pending review", value: stats.pendingReview, href: "/admin/review-queue" },
     { label: "Applications", value: stats.totalApplications, href: null },
-  ];
-
-  const navItems = [
-    { label: "Content Plan", description: `Plan and track 100 SEO articles${contentActionable > 0 ? ` (${contentActionable} need action)` : ""}`, href: "/admin/content" },
-    { label: "Blog", description: "Create, edit, and publish blog posts", href: "/admin/blog" },
-    { label: "Jobs", description: "View, search, and manage all jobs", href: "/admin/jobs" },
-    { label: "Users", description: "View all users and manage roles", href: "/admin/users" },
-    { label: "Companies", description: "View employer accounts and their activity", href: "/admin/companies" },
-    { label: "Review queue", description: "Approve or reject queued job listings", href: "/admin/review-queue" },
-    { label: "Feed ingestion", description: "Run Adzuna ingestion manually", href: "/admin/feeds" },
-    { label: "Feed history", description: "View past ingestion runs and stats", href: "/admin/feed-runs" },
+    { label: "Blog posts", value: blogStats.published, href: "/admin/blog" },
   ];
 
   return (
@@ -36,7 +40,7 @@ export default async function AdminDashboard() {
       <h1 className="text-3xl font-extrabold text-slate-900 mb-8">Admin dashboard</h1>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-        {cards.map((card) => {
+        {statCards.map((card) => {
           const inner = (
             <div className="bg-white rounded-2xl border border-slate-200 p-5 hover:border-violet-300 hover:shadow-md transition-all">
               <div className="text-2xl font-extrabold text-violet-600">{card.value}</div>
@@ -51,9 +55,51 @@ export default async function AdminDashboard() {
         })}
       </div>
 
+      {/* Content section */}
+      <h2 className="text-lg font-bold text-slate-900 mb-4">Content</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <Link href="/admin/content" className="block bg-white rounded-2xl border border-slate-200 p-6 hover:border-violet-300 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold text-slate-900">Content Plan</h3>
+            {contentActionable > 0 && (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">{contentActionable} need action</span>
+            )}
+          </div>
+          <p className="text-sm text-slate-500 mb-3">Plan and track SEO articles across pillar, cluster, and conversion content.</p>
+          <div className="flex gap-4 text-xs text-slate-400">
+            <span><strong className="text-slate-600">{contentPublished}</strong> published</span>
+            <span><strong className="text-slate-600">{contentStats["Draft"] || 0}</strong> drafts</span>
+            <span><strong className="text-slate-600">{contentTotal}</strong> total</span>
+          </div>
+        </Link>
+
+        <Link href="/admin/blog" className="block bg-white rounded-2xl border border-slate-200 p-6 hover:border-violet-300 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold text-slate-900">Blog</h3>
+            {blogStats.drafts > 0 && (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-700">{blogStats.drafts} draft{blogStats.drafts !== 1 ? "s" : ""}</span>
+            )}
+          </div>
+          <p className="text-sm text-slate-500 mb-3">Create, edit, and publish blog posts. Published posts appear on /blog.</p>
+          <div className="flex gap-4 text-xs text-slate-400">
+            <span><strong className="text-slate-600">{blogStats.published}</strong> published</span>
+            <span><strong className="text-slate-600">{blogStats.drafts}</strong> drafts</span>
+            <span><strong className="text-slate-600">{blogStats.total}</strong> total</span>
+          </div>
+        </Link>
+      </div>
+
+      {/* Manage section */}
       <h2 className="text-lg font-bold text-slate-900 mb-4">Manage</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {navItems.map((item) => (
+        {[
+          { label: "Jobs", description: "View, search, and manage all jobs", href: "/admin/jobs" },
+          { label: "Users", description: "View all users and manage roles", href: "/admin/users" },
+          { label: "Companies", description: "View employer accounts and their activity", href: "/admin/companies" },
+          { label: "Review queue", description: "Approve or reject queued job listings", href: "/admin/review-queue" },
+          { label: "Feed ingestion", description: "Run Adzuna ingestion manually", href: "/admin/feeds" },
+          { label: "Feed history", description: "View past ingestion runs and stats", href: "/admin/feed-runs" },
+        ].map((item) => (
           <Link key={item.href} href={item.href} className="block bg-white rounded-2xl border border-slate-200 p-6 hover:border-violet-300 hover:shadow-md transition-all">
             <h3 className="font-bold text-slate-900 mb-1">{item.label}</h3>
             <p className="text-sm text-slate-500">{item.description}</p>

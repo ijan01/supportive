@@ -71,7 +71,13 @@ export default function ContentPlanClient({ items, stats }: Props) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
-          <Link href="/admin" className="text-sm text-violet-600 hover:text-violet-700 font-medium">Admin</Link>
+          <div className="flex items-center gap-2 text-sm mb-1">
+            <Link href="/admin" className="text-violet-600 hover:text-violet-700 font-medium">Admin</Link>
+            <span className="text-slate-300">&rsaquo;</span>
+            <span className="text-slate-500">Content Plan</span>
+            <span className="text-slate-300 mx-1">|</span>
+            <Link href="/admin/blog" className="text-violet-600 hover:text-violet-700 font-medium">Blog</Link>
+          </div>
           <h1 className="text-2xl font-extrabold text-slate-900">Content Plan</h1>
           <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
             {["Planned", "Brief Ready", "Draft", "In Review", "Published"].map((s) => (

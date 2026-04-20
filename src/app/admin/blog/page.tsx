@@ -11,7 +11,13 @@ export default async function AdminBlogPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link href="/admin" className="text-sm text-violet-600 hover:text-violet-700 font-medium">Admin</Link>
+          <div className="flex items-center gap-2 text-sm mb-1">
+            <Link href="/admin" className="text-violet-600 hover:text-violet-700 font-medium">Admin</Link>
+            <span className="text-slate-300">&rsaquo;</span>
+            <span className="text-slate-500">Blog</span>
+            <span className="text-slate-300 mx-1">|</span>
+            <Link href="/admin/content" className="text-violet-600 hover:text-violet-700 font-medium">Content Plan</Link>
+          </div>
           <h1 className="text-2xl font-extrabold text-slate-900">Blog posts ({posts.length})</h1>
         </div>
         <Link
