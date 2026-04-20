@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { AU_SPECIALTIES } from "@/constants";
 import { getJobs, getJobCount } from "@/lib/jobs";
+import { SPECIALTY_CONTENT } from "@/content/specialties";
 import JobCard from "@/components/JobCard";
 
 export function generateStaticParams() {
@@ -17,9 +18,14 @@ export async function generateMetadata({
   const p = await params;
   const specialty = AU_SPECIALTIES.find((s) => s.slug === p["specialty-slug"]);
   if (!specialty) return { title: "Not found" };
+
+  const content = SPECIALTY_CONTENT[p["specialty-slug"]];
+
   return {
     title: `${specialty.name} jobs in Australia`,
-    description: `Browse mental health and supportive services roles specialising in ${specialty.name} across Australia on Supportive.`,
+    description: content
+      ? `${content.summary} Browse current ${specialty.name} roles on Supportive.`
+      : `Browse mental health and supportive services roles specialising in ${specialty.name} across Australia on Supportive.`,
     alternates: { canonical: `/specialties/${p["specialty-slug"]}` },
   };
 }
@@ -32,6 +38,8 @@ export default async function SpecialtyHubPage({
   const p = await params;
   const specialty = AU_SPECIALTIES.find((s) => s.slug === p["specialty-slug"]);
   if (!specialty) notFound();
+
+  const content = SPECIALTY_CONTENT[p["specialty-slug"]];
 
   let jobs: Awaited<ReturnType<typeof getJobs>> = [];
   let total = 0;
@@ -53,6 +61,9 @@ export default async function SpecialtyHubPage({
       </div>
 
       <h1 className="text-3xl font-bold text-slate-900 mb-2">{specialty.name} jobs in Australia</h1>
+      {content && (
+        <p className="text-slate-600 text-lg leading-relaxed mb-6">{content.summary}</p>
+      )}
       <p className="text-slate-500 mb-8">
         {total > 0
           ? `${total} current role${total !== 1 ? "s" : ""} matching this specialisation`
@@ -90,7 +101,47 @@ export default async function SpecialtyHubPage({
         </div>
       )}
 
-      <div className="flex gap-3 text-sm">
+      {content && (
+        <div className="mt-10 space-y-8 border-t border-slate-100 pt-10">
+          <section>
+            <h2 className="text-xl font-bold text-slate-900 mb-4">About {specialty.name}</h2>
+            {content.about.map((para, i) => (
+              <p key={i} className="text-slate-600 leading-relaxed mb-4">{para}</p>
+            ))}
+          </section>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+              <h2 className="text-base font-semibold text-slate-900 mb-3">Relevant roles</h2>
+              <ul className="flex flex-wrap gap-2">
+                {content.relevantRoles.map((role) => (
+                  <li key={role} className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-sm text-slate-600">
+                    {role}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+              <h2 className="text-base font-semibold text-slate-900 mb-3">Key organisations</h2>
+              <ul className="flex flex-wrap gap-2">
+                {content.keyOrganisations.map((org) => (
+                  <li key={org} className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-sm text-slate-600">
+                    {org}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
+
+          <section className="bg-violet-50 rounded-xl p-6 border border-violet-100">
+            <h2 className="text-base font-semibold text-violet-900 mb-2">Workforce demand</h2>
+            <p className="text-violet-800 text-sm leading-relaxed">{content.demandNote}</p>
+          </section>
+        </div>
+      )}
+
+      <div className="mt-10 flex gap-3 text-sm">
         <Link href="/specialties" className="text-violet-600 hover:text-violet-700 font-medium">
           &larr; All specialisations
         </Link>
