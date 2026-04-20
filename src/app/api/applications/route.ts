@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createApplication, getApplicationsByUserId, hasUserApplied } from "@/lib/applications";
 import { getJobById } from "@/lib/jobs";
+import { getUserById } from "@/lib/users";
 import { getSessionFromRequest } from "@/lib/session";
+import { sendNewApplicationEmail } from "@/lib/email";
 
 export async function GET(request: NextRequest) {
   const session = await getSessionFromRequest(request);
@@ -50,6 +52,22 @@ export async function POST(request: NextRequest) {
       resume_url,
       cover_letter
     );
+
+    // Notify employer (fire-and-forget — don't block the response)
+    if (job.user_id) {
+      getUserById(job.user_id).then((employer) => {
+        if (employer?.email) {
+          sendNewApplicationEmail({
+            employerEmail: employer.email,
+            employerName: employer.company_name || employer.name,
+            applicantName: name,
+            applicantEmail: email,
+            jobTitle: job.title,
+            jobId: job.id,
+          }).catch((err) => console.error("[email] failed to notify employer:", err));
+        }
+      });
+    }
 
     return NextResponse.json({ application }, { status: 201 });
   } catch {
