@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getBlogPostBySlug, getAllBlogSlugs } from "@/lib/blog";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
+import BlogContent from "./content";
 
 export const dynamic = "force-dynamic";
 
@@ -63,11 +64,8 @@ export default async function BlogPostPage({
     publisher: { "@type": "Organization", name: "Supportive" },
   };
 
-  // Render content as simple formatted text with h2 detection
-  const paragraphs = post.content.split("\n\n");
-
   return (
-    <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <JsonLd data={jsonLd} />
       <Breadcrumbs items={[
         { label: "Home", href: "/" },
@@ -75,13 +73,12 @@ export default async function BlogPostPage({
         { label: post.title },
       ]} />
 
-      {/* Header */}
       <header className="mb-10">
         <div className="text-sm text-violet-600 font-semibold uppercase tracking-wide mb-3">{date}</div>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 leading-tight">{post.title}</h1>
-        <p className="text-xl text-slate-600 mb-6">{post.excerpt}</p>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 mb-4 leading-tight">{post.title}</h1>
+        <p className="text-xl text-slate-500 mb-6">{post.excerpt}</p>
         <div className="flex items-center gap-3 pb-6 border-b border-slate-200">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white font-bold">
+          <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold">
             {post.author.charAt(0)}
           </div>
           <div>
@@ -91,15 +88,7 @@ export default async function BlogPostPage({
         </div>
       </header>
 
-      {/* Content */}
-      <div className="prose prose-slate max-w-none">
-        {paragraphs.map((para, i) => {
-          if (para.startsWith("## ")) {
-            return <h2 key={i} className="text-2xl font-bold text-slate-900 mt-8 mb-4">{para.slice(3)}</h2>;
-          }
-          return <p key={i} className="text-slate-600 leading-relaxed mb-4">{para}</p>;
-        })}
-      </div>
+      <BlogContent content={post.content} />
     </article>
   );
 }
