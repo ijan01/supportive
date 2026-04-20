@@ -16,6 +16,27 @@ export default async function Home() {
       <Hero />
       <StatsSection />
 
+      {/* Employer strip */}
+      <section className="bg-white border-b border-slate-100 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-violet-600 mb-1">For employers</p>
+              <h2 className="text-xl font-bold text-slate-900">Hiring in mental health or community services?</h2>
+              <p className="text-slate-500 text-sm mt-1">Post a role and reach candidates who are already looking for exactly what you offer. Free to list.</p>
+            </div>
+            <div className="flex gap-3 shrink-0">
+              <Link href="/employers" className="px-5 py-2.5 rounded-full border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm">
+                Learn more
+              </Link>
+              <Link href="/auth/register" className="px-5 py-2.5 rounded-full bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-all text-sm">
+                Post a role
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Jobs */}
       {featuredJobs.length > 0 && (
         <section className="py-16 bg-slate-50">

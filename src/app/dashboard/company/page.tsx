@@ -17,11 +17,11 @@ export default async function CompanyDashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Company Dashboard</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Employer dashboard</h1>
           <p className="text-slate-500 mt-1">Welcome back, {session.user.companyName || session.user.name}</p>
         </div>
         <Link href="/dashboard/company/post-job" className="px-6 py-3 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold hover:from-violet-700 hover:to-purple-700 transition-all shadow-md">
-          + Post a Job
+          Post a role
         </Link>
       </div>
 
