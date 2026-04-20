@@ -167,6 +167,9 @@ function TableView({ items, onEdit }: { items: ContentPlanItem[]; onEdit: (item:
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
                     <button onClick={() => onEdit(item)} className="px-2 py-1 rounded-lg text-xs font-medium text-violet-600 hover:bg-violet-50">Edit</button>
+                    {item.slug && item.status !== "Planned" && item.status !== "Published" && (
+                      <a href={`/admin/blog/edit?slug=${item.slug}`} className="px-2 py-1 rounded-lg text-xs font-medium text-emerald-600 hover:bg-emerald-50">Draft</a>
+                    )}
                     {item.published_url && (
                       <a href={item.published_url} target="_blank" rel="noopener noreferrer" className="px-2 py-1 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50">View</a>
                     )}
@@ -264,7 +267,18 @@ function ContentCard({ item, onEdit, borderColor, small }: { item: ContentPlanIt
           </div>
           <p className={`font-medium ${small ? "text-sm" : "text-base"} ${isPublished ? "text-slate-500" : "text-slate-900"}`}>{item.title}</p>
           <p className="text-xs text-slate-400 mt-1 truncate">{item.target_keyword}</p>
-          {item.target_role && <span className="text-[10px] text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded mt-1 inline-block">{item.target_role}</span>}
+          <div className="flex items-center gap-2 mt-1">
+            {item.target_role && <span className="text-[10px] text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded inline-block">{item.target_role}</span>}
+            {item.slug && !isPlanned && (
+              <a
+                href={`/admin/blog/edit?slug=${item.slug}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded inline-block hover:bg-emerald-100"
+              >
+                View Draft
+              </a>
+            )}
+          </div>
         </div>
         {isPublished && <span className="text-emerald-500 shrink-0">&#10003;</span>}
       </div>
@@ -276,7 +290,7 @@ function EditModal({ item, pillars, onClose, onSaved }: { item: ContentPlanItem;
   const [form, setForm] = useState({ ...item });
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [generateResult, setGenerateResult] = useState<{ slug: string; title: string } | null>(null);
+  const [generateResult, setGenerateResult] = useState<{ slug: string; title: string; blogPostId: number } | null>(null);
   const [generateError, setGenerateError] = useState("");
 
   function set(key: string, value: unknown) {
@@ -308,7 +322,7 @@ function EditModal({ item, pillars, onClose, onSaved }: { item: ContentPlanItem;
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Generation failed");
-      setGenerateResult({ slug: data.slug, title: data.title });
+      setGenerateResult({ slug: data.slug, title: data.title, blogPostId: data.blogPostId });
       setForm((prev) => ({ ...prev, slug: data.slug, status: "Draft" as const }));
     } catch (err) {
       setGenerateError(err instanceof Error ? err.message : "Generation failed");
@@ -421,7 +435,7 @@ function EditModal({ item, pillars, onClose, onSaved }: { item: ContentPlanItem;
         {generateResult && (
           <div className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-100">
             <p className="text-sm text-emerald-700 font-medium mb-2">Draft generated successfully!</p>
-            <a href={`/admin/blog/edit?id=0&slug=${generateResult.slug}`} className="text-sm text-emerald-600 underline hover:text-emerald-700">
+            <a href={`/admin/blog/edit?id=${generateResult.blogPostId}`} className="text-sm text-emerald-600 underline hover:text-emerald-700">
               Edit draft in blog editor →
             </a>
           </div>

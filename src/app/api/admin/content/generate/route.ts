@@ -6,6 +6,12 @@ import type { ContentPlanItem } from "@/lib/content-plan";
 
 export const maxDuration = 120;
 
+const WORD_COUNT_DEFAULTS: Record<string, [number, number]> = {
+  PILLAR: [2000, 4000],
+  CLUSTER: [800, 1500],
+  CONVERSION: [600, 1200],
+};
+
 const SYSTEM_PROMPT = `You are the content writer for Supportive, an Australian mental health job directory. The platform covers 18 mental health role types across Australia: psychologist, clinical psychologist, psychiatrist, mental health nurse, occupational therapist, counsellor, social worker, family & relationship therapist, drug & alcohol / AOD worker, art therapist / music therapist, exercise physiologist, mental health support worker, behaviour support practitioner, peer support worker, psychosocial recovery coach, youth worker, allied health assistant, and lived experience / consumer worker.
 
 Your job is to write articles that rank in Google, drive traffic to the site, and convert readers into job alert subscribers or employers who post roles. Every article must be genuinely useful to the reader.
@@ -111,11 +117,21 @@ Start your response with a JSON metadata block in this exact format:
   "title": "The SEO-optimised article title",
   "slug": "url-friendly-slug",
   "excerpt": "One sentence meta description under 160 characters",
+  "secondary_keywords": "keyword one, keyword two, keyword three",
   "word_count": 2500
 }
 \`\`\`
 
 Then write the full article content in markdown after the JSON block.`;
+
+async function checkRateLimit(): Promise<boolean> {
+  const result = await sql`
+    SELECT COUNT(*)::int AS count FROM content_plan
+    WHERE status = 'Draft'
+      AND updated_at >= NOW() - INTERVAL '1 hour'
+  `;
+  return (result.rows[0].count as number) < 3;
+}
 
 async function buildBrief(article: ContentPlanItem) {
   await ensureInitialized();
@@ -173,11 +189,9 @@ async function buildBrief(article: ContentPlanItem) {
     internalLinks.push(`/blog/${p.slug} — "${p.title}"`);
   }
 
-  const wordRange = article.target_word_count_min && article.target_word_count_max
-    ? `${article.target_word_count_min}-${article.target_word_count_max} words`
-    : article.content_type === "PILLAR" ? "2,000-4,000 words"
-    : article.content_type === "CLUSTER" ? "800-1,500 words"
-    : "600-1,200 words";
+  const [wcMin, wcMax] = WORD_COUNT_DEFAULTS[article.content_type] || [800, 1500];
+  const wordMin = article.target_word_count_min || wcMin;
+  const wordMax = article.target_word_count_max || wcMax;
 
   let brief = `## Article Brief
 
@@ -186,7 +200,7 @@ async function buildBrief(article: ContentPlanItem) {
 **Target Keyword**: ${article.target_keyword || "N/A"}
 **Secondary Keywords**: ${article.secondary_keywords || "N/A"}
 **Target Role**: ${article.target_role || "Cross-role / sector-wide"}
-**Target Word Count**: ${wordRange}
+**Target Word Count**: ${wordMin}-${wordMax} words
 `;
 
   if (parentPillar) {
@@ -219,7 +233,7 @@ export async function POST(request: NextRequest) {
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "ANTHROPIC_API_KEY not configured" }, { status: 500 });
+    return NextResponse.json({ error: "ANTHROPIC_API_KEY not configured. Add it to your Vercel environment variables." }, { status: 500 });
   }
 
   const body = await request.json();
@@ -231,47 +245,71 @@ export async function POST(request: NextRequest) {
 
   await ensureInitialized();
 
+  const allowed = await checkRateLimit();
+  if (!allowed) {
+    return NextResponse.json({ error: "Rate limit reached: maximum 3 article generations per hour. Please wait before generating another." }, { status: 429 });
+  }
+
   const articleResult = await sql`SELECT * FROM content_plan WHERE id = ${articleId}`;
   const article = articleResult.rows[0] as ContentPlanItem | undefined;
   if (!article) {
     return NextResponse.json({ error: "Article not found" }, { status: 404 });
   }
 
+  const previousStatus = article.status;
+
   await sql`UPDATE content_plan SET status = 'Draft', updated_at = NOW() WHERE id = ${articleId}`;
 
-  const brief = await buildBrief(article);
+  let fullText: string;
+  try {
+    const brief = await buildBrief(article);
+    const client = new Anthropic({ apiKey });
 
-  const client = new Anthropic({ apiKey });
+    const message = await client.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 8000,
+      temperature: 0.7,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: brief }],
+    });
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 8192,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: brief }],
-  });
-
-  const textContent = message.content.find((c) => c.type === "text");
-  if (!textContent || textContent.type !== "text") {
-    return NextResponse.json({ error: "No text content in AI response" }, { status: 500 });
+    const textContent = message.content.find((c) => c.type === "text");
+    if (!textContent || textContent.type !== "text") {
+      throw new Error("No text content in AI response");
+    }
+    fullText = textContent.text;
+  } catch (err) {
+    await sql`UPDATE content_plan SET status = ${previousStatus}, updated_at = NOW() WHERE id = ${articleId}`;
+    return NextResponse.json({
+      error: `Generation failed: ${err instanceof Error ? err.message : String(err)}`,
+    }, { status: 500 });
   }
 
-  const fullText = textContent.text;
+  let metadata: { title: string; slug: string; excerpt: string; secondary_keywords?: string; word_count: number } = {
+    title: article.title,
+    slug: "",
+    excerpt: "",
+    word_count: 0,
+  };
 
-  let metadata = { title: article.title, slug: "", excerpt: "", word_count: 0 };
   const jsonMatch = fullText.match(/```json\s*\n([\s\S]*?)\n```/);
+  let articleContent: string;
+
   if (jsonMatch) {
     try {
-      metadata = JSON.parse(jsonMatch[1]);
+      metadata = { ...metadata, ...JSON.parse(jsonMatch[1]) };
     } catch {
-      // Use defaults
+      // JSON parse failed — use raw response and flag for review
     }
+    const endOfJson = fullText.indexOf("```", jsonMatch.index! + 7);
+    articleContent = fullText.slice(endOfJson + 3).replace(/^\n+/, "");
+  } else {
+    articleContent = fullText;
   }
 
-  const articleContent = jsonMatch
-    ? fullText.slice(fullText.indexOf("```", jsonMatch.index! + 1) + 3).replace(/^\n+/, "")
-    : fullText;
-
   const slug = metadata.slug || article.slug || article.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const title = metadata.title || article.title;
+  const excerpt = metadata.excerpt || article.target_keyword || "";
 
   const existingPost = await sql`SELECT id FROM blog_posts WHERE slug = ${slug}`;
 
@@ -279,9 +317,9 @@ export async function POST(request: NextRequest) {
   if (existingPost.rows.length > 0) {
     await sql`
       UPDATE blog_posts SET
-        title = ${metadata.title || article.title},
+        title = ${title},
         content = ${articleContent},
-        excerpt = ${metadata.excerpt || article.target_keyword || ""},
+        excerpt = ${excerpt},
         author = ${"Supportive"}
       WHERE slug = ${slug}
     `;
@@ -289,16 +327,22 @@ export async function POST(request: NextRequest) {
   } else {
     const insertResult = await sql`
       INSERT INTO blog_posts (title, slug, content, excerpt, author)
-      VALUES (${metadata.title || article.title}, ${slug}, ${articleContent}, ${metadata.excerpt || article.target_keyword || ""}, ${"Supportive"})
+      VALUES (${title}, ${slug}, ${articleContent}, ${excerpt}, ${"Supportive"})
       RETURNING id
     `;
     blogPostId = insertResult.rows[0].id as number;
   }
 
+  const [wcMin, wcMax] = WORD_COUNT_DEFAULTS[article.content_type] || [800, 1500];
+  const updateSecondaryKw = !article.secondary_keywords && metadata.secondary_keywords ? metadata.secondary_keywords : article.secondary_keywords;
+
   await sql`
     UPDATE content_plan SET
       slug = ${slug},
       status = 'Draft',
+      secondary_keywords = ${updateSecondaryKw || null},
+      target_word_count_min = COALESCE(target_word_count_min, ${wcMin}),
+      target_word_count_max = COALESCE(target_word_count_max, ${wcMax}),
       updated_at = NOW()
     WHERE id = ${articleId}
   `;
@@ -307,8 +351,8 @@ export async function POST(request: NextRequest) {
     ok: true,
     blogPostId,
     slug,
-    title: metadata.title || article.title,
-    excerpt: metadata.excerpt,
+    title,
+    excerpt,
     wordCount: metadata.word_count,
   });
 }
