@@ -16,6 +16,7 @@ export default async function AdminDashboard() {
   ];
 
   const navItems = [
+    { label: "Blog", description: "Create, edit, and publish blog posts", href: "/admin/blog" },
     { label: "Jobs", description: "View, search, and manage all jobs", href: "/admin/jobs" },
     { label: "Users", description: "View all users and manage roles", href: "/admin/users" },
     { label: "Companies", description: "View employer accounts and their activity", href: "/admin/companies" },
