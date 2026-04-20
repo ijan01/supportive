@@ -58,5 +58,6 @@ export async function registerAction(
     maxAge: 30 * 24 * 60 * 60,
   });
 
-  redirect("/dashboard");
+  const callbackUrl = formData.get("callbackUrl") as string;
+  redirect(callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/dashboard");
 }

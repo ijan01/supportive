@@ -26,7 +26,7 @@ export default function JobDetailClient({ jobId, jobTitle, userRole }: { jobId: 
       )}
       {!isLoggedIn && (
         <a
-          href="/auth/login"
+          href={`/auth/login?callbackUrl=/jobs/${jobId}`}
           className="px-6 py-2.5 rounded-full bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-all"
         >
           Sign in to Apply

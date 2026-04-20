@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { registerAction } from "./actions";
 
@@ -19,6 +20,8 @@ function SubmitButton({ pending }: { pending: boolean }) {
 export default function RegisterPage() {
   const [role, setRole] = useState<"seeker" | "company">("seeker");
   const [state, formAction, isPending] = useActionState(registerAction, null);
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "";
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 bg-lavender">
@@ -60,6 +63,7 @@ export default function RegisterPage() {
 
           <form action={formAction} className="space-y-4">
             <input type="hidden" name="role" value={role} />
+            <input type="hidden" name="callbackUrl" value={callbackUrl} />
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Your name</label>
               <input
@@ -105,7 +109,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Already have an account?{" "}
-            <Link href="/auth/login" className="text-violet-600 font-medium hover:text-violet-700">
+            <Link href={`/auth/login${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`} className="text-violet-600 font-medium hover:text-violet-700">
               Sign in
             </Link>
           </p>
