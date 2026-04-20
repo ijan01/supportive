@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { loginAction } from "./actions";
@@ -18,6 +18,14 @@ function SubmitButton({ pending }: { pending: boolean }) {
 }
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "";

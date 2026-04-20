@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { Suspense, useState, useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { registerAction } from "./actions";
@@ -18,6 +18,14 @@ function SubmitButton({ pending }: { pending: boolean }) {
 }
 
 export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterForm() {
   const [role, setRole] = useState<"seeker" | "company">("seeker");
   const [state, formAction, isPending] = useActionState(registerAction, null);
   const searchParams = useSearchParams();
