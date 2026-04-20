@@ -1,9 +1,18 @@
-export default function StatsSection() {
+import { getJobCount } from "@/lib/jobs";
+
+export default async function StatsSection() {
+  let jobCount = 0;
+  try {
+    jobCount = await getJobCount();
+  } catch {
+    // DB not available at build time
+  }
+
   const stats = [
     { label: "Role categories", value: "18" },
     { label: "States covered", value: "8" },
     { label: "Specialisations", value: "10" },
-    { label: "Mission-aligned employers", value: "Growing" },
+    { label: "Active roles", value: jobCount > 0 ? String(jobCount) : "Growing" },
   ];
 
   return (
