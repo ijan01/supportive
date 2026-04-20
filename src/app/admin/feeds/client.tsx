@@ -14,6 +14,7 @@ interface RunResult {
     totalPublished: number;
     totalQueued: number;
     totalRejected: number;
+    errors?: string[];
   };
   error?: string;
 }
@@ -100,6 +101,21 @@ export default function RunNowClient() {
                 <dd className="font-semibold text-red-700">{result.stats.totalRejected}</dd>
               </div>
             </dl>
+          )}
+          {result.stats?.errors && result.stats.errors.length > 0 && (
+            <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-100">
+              <p className="text-sm font-medium text-red-800 mb-1">
+                {result.stats.errors.length} query error{result.stats.errors.length !== 1 ? "s" : ""}:
+              </p>
+              <ul className="text-xs text-red-700 space-y-1">
+                {result.stats.errors.slice(0, 5).map((e, i) => (
+                  <li key={i}>{e}</li>
+                ))}
+                {result.stats.errors.length > 5 && (
+                  <li>...and {result.stats.errors.length - 5} more</li>
+                )}
+              </ul>
+            </div>
           )}
         </div>
       )}

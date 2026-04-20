@@ -12,6 +12,7 @@ export interface IngestStats {
   totalPublished: number;
   totalQueued: number;
   totalRejected: number;
+  errors: string[];
 }
 
 export interface IngestOptions {
@@ -160,6 +161,7 @@ export async function ingestAdzuna(options: IngestOptions): Promise<IngestStats>
     totalPublished: 0,
     totalQueued: 0,
     totalRejected: 0,
+    errors: [],
   };
 
   let runId: number | null = null;
@@ -175,7 +177,9 @@ export async function ingestAdzuna(options: IngestOptions): Promise<IngestStats>
       try {
         response = await searchAdzuna(query);
       } catch (err) {
-        console.error(`[ingest] query "${query.what}" failed:`, err);
+        const msg = `Query "${query.what}" failed: ${err instanceof Error ? err.message : String(err)}`;
+        console.error(`[ingest] ${msg}`);
+        stats.errors.push(msg);
         continue;
       }
 
