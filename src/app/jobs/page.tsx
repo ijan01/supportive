@@ -46,9 +46,9 @@ export default async function JobsPage({
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Browse roles</h1>
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">Browse roles</h1>
         <p className="text-slate-500">
           {total > 0
             ? `${total} role${total !== 1 ? "s" : ""} across Australia`
@@ -56,12 +56,12 @@ export default async function JobsPage({
         </p>
       </div>
       <div className="mb-6">
-        <Suspense fallback={<div className="h-14 bg-white rounded-xl animate-pulse" />}>
+        <Suspense fallback={<div className="h-14 bg-white rounded-2xl animate-pulse border border-slate-200" />}>
           <JobFilters />
         </Suspense>
       </div>
       {isAnonymous && (
-        <div className="mb-6 flex items-center justify-between rounded-xl bg-violet-50 border border-violet-100 px-5 py-3">
+        <div className="mb-6 rounded-2xl bg-lavender border border-violet-100 px-6 py-4">
           <p className="text-sm text-violet-700">
             <Link href="/auth/register" className="font-semibold underline hover:text-violet-900">Create a free account</Link> to save roles and track your applications.
           </p>
@@ -78,17 +78,17 @@ export default async function JobsPage({
             {page > 1 && (
               <Link
                 href={pageUrl(page - 1)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm"
+                className="px-5 py-2.5 rounded-full border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm"
               >
-                &larr; Previous
+                Previous
               </Link>
             )}
             {page < totalPages && (
               <Link
                 href={pageUrl(page + 1)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm"
+                className="px-5 py-2.5 rounded-full bg-violet-600 text-white font-medium hover:bg-violet-700 transition-colors text-sm"
               >
-                Next &rarr;
+                Next page
               </Link>
             )}
           </div>

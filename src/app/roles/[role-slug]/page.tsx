@@ -62,18 +62,17 @@ export default async function RoleHubPage({
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-2 text-sm text-slate-400">
         <Link href="/roles" className="hover:text-violet-600 transition-colors">Roles</Link>
-        <span className="mx-2">›</span>
+        <span className="mx-2">&rsaquo;</span>
         <span>{role.name}</span>
       </div>
 
-      <h1 className="text-3xl font-bold text-slate-900 mb-2">{role.name} jobs in Australia</h1>
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">{role.name} jobs in Australia</h1>
       <p className="text-slate-500 mb-8">
         {total > 0
           ? `${total} current role${total !== 1 ? "s" : ""} available`
           : "No current listings — check back soon."}
       </p>
 
-      {/* Live job listings */}
       {jobs.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -87,14 +86,14 @@ export default async function RoleHubPage({
                 href={`/jobs?category=${encodeURIComponent(role.name)}`}
                 className="inline-block px-6 py-2.5 rounded-full bg-violet-600 text-white font-medium hover:bg-violet-700 transition-all text-sm"
               >
-                View all {total} {role.name} roles &rarr;
+                View all {total} {role.name} roles
               </Link>
             </div>
           )}
         </>
       ) : (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 mb-10 text-center">
-          <p className="text-slate-600 font-medium mb-2">No {role.name} roles right now</p>
+        <div className="bg-lavender border border-violet-100 rounded-2xl p-8 mb-10 text-center">
+          <p className="text-slate-700 font-medium mb-2">No {role.name} roles right now</p>
           <p className="text-slate-500 text-sm mb-4">New roles are added daily. Check back soon or browse all current roles.</p>
           <Link
             href="/jobs"
@@ -105,11 +104,10 @@ export default async function RoleHubPage({
         </div>
       )}
 
-      {/* Editorial content */}
       {content && (
-        <div className="mt-12 space-y-10 border-t border-slate-100 pt-10">
+        <div className="mt-12 space-y-8 border-t border-slate-100 pt-10">
           <section>
-            <h2 className="text-xl font-bold text-slate-900 mb-4">About {role.name} roles</h2>
+            <h2 className="text-xl font-extrabold text-slate-900 mb-4">About {role.name} roles</h2>
             <div className="space-y-4">
               {content.about.map((para, i) => (
                 <p key={i} className="text-slate-600 leading-relaxed">{para}</p>
@@ -118,22 +116,22 @@ export default async function RoleHubPage({
           </section>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+            <section className="bg-lavender rounded-2xl p-6 border border-violet-100">
               <h2 className="text-base font-semibold text-slate-900 mb-3">Typical salary</h2>
-              <p className="text-2xl font-bold text-violet-700 mb-1">
+              <p className="text-2xl font-extrabold text-violet-600 mb-1">
                 {formatSalary(content.salaryMin, content.salaryMax)}
               </p>
               <p className="text-sm text-slate-500">{content.salaryNote}</p>
             </section>
 
-            <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+            <section className="bg-lavender rounded-2xl p-6 border border-violet-100">
               <h2 className="text-base font-semibold text-slate-900 mb-3">Registration</h2>
               <p className="text-sm text-slate-600">{content.registration}</p>
             </section>
           </div>
 
           <section>
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Qualifications</h2>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">Qualifications typically required</h2>
             <ul className="space-y-2">
               {content.qualifications.map((q, i) => (
                 <li key={i} className="flex items-start gap-3 text-slate-600 text-sm">
@@ -145,26 +143,36 @@ export default async function RoleHubPage({
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Career pathway</h2>
-            <p className="text-slate-600 leading-relaxed">{content.careerPathway}</p>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">Career pathway</h2>
+            <p className="text-slate-600 text-sm leading-relaxed">{content.careerPathway}</p>
           </section>
         </div>
       )}
 
       <div className="mt-12">
-        <h2 className="text-lg font-semibold text-slate-800 mb-4">Browse {role.name} jobs by location</h2>
+        <h2 className="text-lg font-bold text-slate-800 mb-4">Browse {role.name} jobs by location</h2>
         <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {AU_LOCATIONS.filter((l) => l.state !== null).map((loc) => (
             <li key={loc.slug}>
               <Link
                 href={`/roles/${p["role-slug"]}/${loc.slug}`}
-                className="block px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 hover:border-violet-300 hover:text-violet-700 transition-all"
+                className="block px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 hover:border-violet-300 hover:text-violet-600 transition-all"
               >
                 {loc.name}
               </Link>
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="mt-10 flex gap-3 text-sm">
+        <Link href="/roles" className="text-violet-600 hover:text-violet-700 font-medium">
+          All role types
+        </Link>
+        <span className="text-slate-300">|</span>
+        <Link href="/jobs" className="text-violet-600 hover:text-violet-700 font-medium">
+          Browse all roles
+        </Link>
       </div>
     </div>
   );

@@ -16,16 +16,15 @@ export default async function StatsSection() {
   ];
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-14 bg-lavender">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p className="text-center text-sm font-medium text-slate-400 uppercase tracking-widest mb-8">Launching with</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+              <div className="text-3xl sm:text-4xl font-extrabold text-violet-600">
                 {stat.value}
               </div>
-              <div className="text-slate-500 mt-1 font-medium text-sm">{stat.label}</div>
+              <div className="text-slate-600 mt-1 font-medium text-sm">{stat.label}</div>
             </div>
           ))}
         </div>

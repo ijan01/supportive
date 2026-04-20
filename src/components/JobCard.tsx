@@ -8,14 +8,14 @@ export default function JobCard({ job }: { job: Job }) {
 
   return (
     <Link href={`/jobs/${job.id}`} className="group block">
-      <div className="relative bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-200">
+      <div className="relative bg-white rounded-2xl border border-slate-200 p-6 hover:border-violet-300 hover:shadow-lg transition-all duration-200">
         {job.is_featured === 1 && (
-          <span className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-amber-400 to-orange-400 text-white">
+          <span className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-600 text-white">
             Featured
           </span>
         )}
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center text-violet-600 font-bold text-lg shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-base shrink-0">
             {job.company.charAt(0)}
           </div>
           <div className="min-w-0 flex-1">
@@ -40,12 +40,7 @@ export default function JobCard({ job }: { job: Job }) {
           <span className="font-semibold text-slate-700">
             {formatSalary(job.salary_min, job.salary_max) || "Salary not listed"}
           </span>
-          <div className="flex items-center gap-2">
-            {job.apply_url && (
-              <span className="text-xs text-slate-400">External</span>
-            )}
-            <span className="text-slate-400">{formatRelativeDate(job.created_at)}</span>
-          </div>
+          <span className="text-slate-400 text-xs">{formatRelativeDate(job.created_at)}</span>
         </div>
       </div>
     </Link>

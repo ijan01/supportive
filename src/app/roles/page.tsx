@@ -10,30 +10,38 @@ export const metadata: Metadata = {
 
 export default function RolesIndexPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-slate-900 mb-2">Mental health roles</h1>
-      <p className="text-slate-500 mb-10">Browse all 18 role categories across clinical, allied health, community, and leadership.</p>
+    <>
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">
+            Mental health <span className="text-highlight">roles</span>
+          </h1>
+          <p className="text-slate-500 text-lg">Browse all 18 role categories across clinical, allied health, community, and leadership.</p>
+        </div>
+      </section>
 
-      <div className="space-y-10">
-        {MH_ROLE_GROUPS.map((group) => (
-          <div key={group.slug}>
-            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">{group.label}</h2>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {MH_ROLES.filter((r) => r.group === group.slug).map((role) => (
-                <li key={role.slug}>
-                  <Link
-                    href={`/roles/${role.slug}`}
-                    className="flex items-center justify-between px-4 py-3 rounded-xl border border-slate-200 bg-white hover:border-violet-300 hover:shadow-sm transition-all"
-                  >
-                    <span className="font-medium text-slate-800">{role.name}</span>
-                    <span className="text-violet-500 text-sm">→</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </div>
+      <section className="pb-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          {MH_ROLE_GROUPS.map((group) => (
+            <div key={group.slug}>
+              <h2 className="text-sm font-semibold text-violet-600 uppercase tracking-widest mb-4">{group.label}</h2>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {MH_ROLES.filter((r) => r.group === group.slug).map((role) => (
+                  <li key={role.slug}>
+                    <Link
+                      href={`/roles/${role.slug}`}
+                      className="flex items-center justify-between px-5 py-4 rounded-2xl border border-slate-200 bg-white hover:border-violet-300 hover:shadow-md transition-all"
+                    >
+                      <span className="font-medium text-slate-800">{role.name}</span>
+                      <span className="text-violet-500 text-sm font-medium">View</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
   );
 }

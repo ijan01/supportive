@@ -12,48 +12,50 @@ export default function Navbar() {
   const dashboardPath = user?.role === "company" ? "/dashboard/company" : "/dashboard/seeker";
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+    <nav className="sticky top-0 z-50 bg-white border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center text-white font-bold text-lg leading-none">S</span>
-            <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Supportive</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center text-white font-bold text-lg leading-none">S</span>
+            <span className="text-xl font-bold text-slate-900">Supportive</span>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link href="/jobs" className="text-slate-600 hover:text-violet-600 font-medium transition-colors">
+          <div className="hidden md:flex items-center gap-1">
+            <Link href="/jobs" className="px-3 py-2 rounded-lg text-slate-600 hover:text-violet-600 hover:bg-violet-50 font-medium transition-all text-sm">
               Browse roles
             </Link>
-            <Link href="/roles" className="text-slate-600 hover:text-violet-600 font-medium transition-colors">
+            <Link href="/roles" className="px-3 py-2 rounded-lg text-slate-600 hover:text-violet-600 hover:bg-violet-50 font-medium transition-all text-sm">
               Role types
             </Link>
-            <Link href="/blog" className="text-slate-600 hover:text-violet-600 font-medium transition-colors">
-              Blog
+            <Link href="/employers" className="px-3 py-2 rounded-lg text-slate-600 hover:text-violet-600 hover:bg-violet-50 font-medium transition-all text-sm">
+              Employers
             </Link>
-            <Link href="/about" className="text-slate-600 hover:text-violet-600 font-medium transition-colors">
+            <Link href="/about" className="px-3 py-2 rounded-lg text-slate-600 hover:text-violet-600 hover:bg-violet-50 font-medium transition-all text-sm">
               About
             </Link>
+          </div>
+
+          <div className="hidden md:flex items-center gap-3">
             {session ? (
               <>
-                <Link href={dashboardPath} className="text-slate-600 hover:text-violet-600 font-medium transition-colors">
+                <Link href={dashboardPath} className="px-4 py-2 rounded-lg text-slate-600 hover:text-violet-600 hover:bg-violet-50 font-medium transition-all text-sm">
                   Dashboard
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="text-slate-600 hover:text-violet-600 font-medium transition-colors"
+                  className="px-4 py-2 rounded-lg text-slate-600 hover:text-violet-600 hover:bg-violet-50 font-medium transition-all text-sm"
                 >
-                  Sign Out
+                  Sign out
                 </button>
               </>
             ) : (
               <>
-                <Link href="/auth/login" className="text-slate-600 hover:text-violet-600 font-medium transition-colors">
-                  Sign In
+                <Link href="/auth/login" className="px-4 py-2 rounded-lg text-slate-600 hover:text-violet-600 hover:bg-violet-50 font-medium transition-all text-sm">
+                  Sign in
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 py-2 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-medium hover:from-violet-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
+                  className="px-5 py-2 rounded-full bg-violet-600 text-white font-medium hover:bg-violet-700 transition-all text-sm"
                 >
                   Get Started
                 </Link>
@@ -61,9 +63,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile hamburger */}
           <button
-            className="md:hidden p-2 rounded-lg hover:bg-slate-100"
+            className="md:hidden p-2 rounded-lg hover:bg-slate-50"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             <svg className="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,43 +77,44 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden pb-4 space-y-2">
-            <Link href="/jobs" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
+          <div className="md:hidden pb-4 pt-2 space-y-1 border-t border-slate-100">
+            <Link href="/jobs" className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
               Browse roles
             </Link>
-            <Link href="/roles" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
+            <Link href="/roles" className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
               Role types
             </Link>
-            <Link href="/blog" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
-              Blog
+            <Link href="/employers" className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
+              Employers
             </Link>
-            <Link href="/about" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
+            <Link href="/about" className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
               About
             </Link>
-            {session ? (
-              <>
-                <Link href={dashboardPath} className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
-                  Dashboard
-                </Link>
-                <button
-                  onClick={() => { signOut({ callbackUrl: "/" }); setMenuOpen(false); }}
-                  className="block w-full text-left px-3 py-2 rounded-lg text-slate-600 hover:bg-violet-50 hover:text-violet-600 font-medium"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/auth/login" className="block px-3 py-2 rounded-lg text-slate-600 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
-                  Sign In
-                </Link>
-                <Link href="/auth/register" className="block px-3 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white text-center font-medium" onClick={() => setMenuOpen(false)}>
-                  Get Started
-                </Link>
-              </>
-            )}
+            <div className="border-t border-slate-100 pt-2 mt-2">
+              {session ? (
+                <>
+                  <Link href={dashboardPath} className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => { signOut({ callbackUrl: "/" }); setMenuOpen(false); }}
+                    className="block w-full text-left px-4 py-2.5 rounded-lg text-slate-700 hover:bg-violet-50 hover:text-violet-600 font-medium"
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/login" className="block px-4 py-2.5 rounded-lg text-slate-700 hover:bg-violet-50 hover:text-violet-600 font-medium" onClick={() => setMenuOpen(false)}>
+                    Sign in
+                  </Link>
+                  <Link href="/auth/register" className="block mx-4 mt-2 px-4 py-2.5 rounded-lg bg-violet-600 text-white text-center font-medium" onClick={() => setMenuOpen(false)}>
+                    Get Started
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>

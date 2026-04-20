@@ -60,7 +60,7 @@ export default async function SpecialtyHubPage({
         <span>{specialty.name}</span>
       </div>
 
-      <h1 className="text-3xl font-bold text-slate-900 mb-2">{specialty.name} jobs in Australia</h1>
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">{specialty.name} jobs in Australia</h1>
       {content && (
         <p className="text-slate-600 text-lg leading-relaxed mb-6">{content.summary}</p>
       )}
@@ -89,7 +89,7 @@ export default async function SpecialtyHubPage({
           )}
         </>
       ) : (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 mb-10 text-center">
+        <div className="bg-lavender border border-violet-100 rounded-2xl p-8 mb-10 text-center">
           <p className="text-slate-600 font-medium mb-2">No {specialty.name} roles listed right now</p>
           <p className="text-slate-500 text-sm mb-4">New roles are added daily. Browse all current roles or try a broader search.</p>
           <Link
@@ -104,14 +104,14 @@ export default async function SpecialtyHubPage({
       {content && (
         <div className="mt-10 space-y-8 border-t border-slate-100 pt-10">
           <section>
-            <h2 className="text-xl font-bold text-slate-900 mb-4">About {specialty.name}</h2>
+            <h2 className="text-xl font-extrabold text-slate-900 mb-4">About {specialty.name}</h2>
             {content.about.map((para, i) => (
               <p key={i} className="text-slate-600 leading-relaxed mb-4">{para}</p>
             ))}
           </section>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+            <section className="bg-lavender rounded-2xl p-6 border border-violet-100">
               <h2 className="text-base font-semibold text-slate-900 mb-3">Relevant roles</h2>
               <ul className="flex flex-wrap gap-2">
                 {content.relevantRoles.map((role) => (
@@ -122,7 +122,7 @@ export default async function SpecialtyHubPage({
               </ul>
             </section>
 
-            <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+            <section className="bg-lavender rounded-2xl p-6 border border-violet-100">
               <h2 className="text-base font-semibold text-slate-900 mb-3">Key organisations</h2>
               <ul className="flex flex-wrap gap-2">
                 {content.keyOrganisations.map((org) => (
@@ -134,9 +134,9 @@ export default async function SpecialtyHubPage({
             </section>
           </div>
 
-          <section className="bg-violet-50 rounded-xl p-6 border border-violet-100">
-            <h2 className="text-base font-semibold text-violet-900 mb-2">Workforce demand</h2>
-            <p className="text-violet-800 text-sm leading-relaxed">{content.demandNote}</p>
+          <section className="bg-violet-600 rounded-2xl p-6">
+            <h2 className="text-base font-semibold text-white mb-2">Workforce demand</h2>
+            <p className="text-violet-100 text-sm leading-relaxed">{content.demandNote}</p>
           </section>
         </div>
       )}

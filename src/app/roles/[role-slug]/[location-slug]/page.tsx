@@ -85,7 +85,7 @@ export default async function RoleLocationPage({
         <span>{loc.name}</span>
       </div>
 
-      <h1 className="text-3xl font-bold text-slate-900 mb-2">{role.name} jobs in {loc.name}</h1>
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">{role.name} jobs in {loc.name}</h1>
       <p className="text-slate-500 mb-8">
         {jobs.length > 0
           ? `${jobs.length} current role${jobs.length !== 1 ? "s" : ""} available`
@@ -100,7 +100,7 @@ export default async function RoleLocationPage({
           ))}
         </div>
       ) : (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 mb-8 text-center">
+        <div className="bg-lavender border border-violet-100 rounded-2xl p-8 mb-8 text-center">
           <p className="text-slate-600 font-medium mb-2">No {role.name} roles in {loc.name} right now</p>
           <p className="text-slate-500 text-sm mb-4">New roles are added daily. Check back soon or browse all current roles.</p>
           <Link
@@ -116,22 +116,22 @@ export default async function RoleLocationPage({
       {content && (
         <div className="mt-10 space-y-8 border-t border-slate-100 pt-10">
           <section>
-            <h2 className="text-xl font-bold text-slate-900 mb-4">{role.name} work in {loc.name}</h2>
+            <h2 className="text-xl font-extrabold text-slate-900 mb-4">{role.name} work in {loc.name}</h2>
             <p className="text-slate-600 leading-relaxed mb-4">{content.intro}</p>
             <p className="text-slate-600 leading-relaxed mb-4">{content.roleContext}</p>
             <p className="text-slate-600 leading-relaxed">{content.locationContext}</p>
           </section>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+            <section className="bg-lavender rounded-2xl p-6 border border-violet-100">
               <h2 className="text-base font-semibold text-slate-900 mb-2">Typical salary</h2>
-              <p className="text-2xl font-bold text-violet-700 mb-1">
+              <p className="text-2xl font-extrabold text-violet-600 mb-1">
                 {formatSalary(content.salaryMin, content.salaryMax)}
               </p>
               <p className="text-sm text-slate-500">{content.salaryNote}</p>
             </section>
 
-            <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+            <section className="bg-lavender rounded-2xl p-6 border border-violet-100">
               <h2 className="text-base font-semibold text-slate-900 mb-2">Registration</h2>
               <p className="text-sm text-slate-600">{content.registration}</p>
             </section>

@@ -65,7 +65,7 @@ export default async function LocationHubPage({
         <span>{loc.name}</span>
       </div>
 
-      <h1 className="text-3xl font-bold text-slate-900 mb-2">Mental health jobs in {loc.name}</h1>
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">Mental health jobs in {loc.name}</h1>
       <p className="text-slate-500 mb-8">
         {total > 0
           ? `${total} current role${total !== 1 ? "s" : ""} available`
@@ -92,7 +92,7 @@ export default async function LocationHubPage({
           )}
         </>
       ) : (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 mb-10 text-center">
+        <div className="bg-lavender border border-violet-100 rounded-2xl p-8 mb-10 text-center">
           <p className="text-slate-600 font-medium mb-2">No roles in {loc.name} right now</p>
           <p className="text-slate-500 text-sm mb-4">New roles are added daily. Check back soon or browse all current roles.</p>
           <Link
@@ -108,7 +108,7 @@ export default async function LocationHubPage({
       {content && (
         <div className="mt-12 space-y-10 border-t border-slate-100 pt-10">
           <section>
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Mental health work in {loc.name}</h2>
+            <h2 className="text-xl font-extrabold text-slate-900 mb-4">Mental health work in {loc.name}</h2>
             <div className="space-y-4">
               {content.about.map((para, i) => (
                 <p key={i} className="text-slate-600 leading-relaxed">{para}</p>

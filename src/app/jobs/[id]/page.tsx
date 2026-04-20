@@ -45,7 +45,7 @@ export default async function JobDetailPage({
   return (
     <>
       <JsonLd data={jsonLd} />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <Breadcrumbs
           items={[
             { label: "Home", href: "/" },
@@ -54,24 +54,24 @@ export default async function JobDetailPage({
           ]}
         />
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-violet-600 to-purple-600 p-8 text-white">
+          <div className="bg-violet-600 p-8 sm:p-10 text-white">
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-xl bg-white/20 flex items-center justify-center text-2xl font-bold shrink-0">
+              <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-2xl font-bold shrink-0">
                 {job.company.charAt(0)}
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold mb-1">{job.title}</h1>
-                <p className="text-purple-100 text-lg">{job.company}</p>
+                <h1 className="text-2xl sm:text-3xl font-extrabold mb-1">{job.title}</h1>
+                <p className="text-violet-100 text-lg">{job.company}</p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-3 mt-6">
+            <div className="flex flex-wrap gap-2 mt-6">
               <span className="px-3 py-1 rounded-full bg-white/20 text-sm font-medium">{job.location}</span>
               <span className="px-3 py-1 rounded-full bg-white/20 text-sm font-medium">{job.job_type}</span>
               <span className="px-3 py-1 rounded-full bg-white/20 text-sm font-medium">{job.category}</span>
               {salary && (
-                <span className="px-3 py-1 rounded-full bg-amber-400/90 text-slate-900 text-sm font-semibold">
+                <span className="px-3 py-1 rounded-full bg-white text-violet-600 text-sm font-semibold">
                   {salary}
                 </span>
               )}
@@ -79,7 +79,7 @@ export default async function JobDetailPage({
           </div>
 
           {/* Body */}
-          <div className="p-8">
+          <div className="p-8 sm:p-10">
             <JobDetailClient jobId={job.id} jobTitle={job.title} />
 
             <section className="mb-8">
@@ -108,7 +108,7 @@ export default async function JobDetailPage({
                 href={job.apply_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold hover:from-violet-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
+                className="inline-block px-8 py-3 rounded-full bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-all"
               >
                 {job.source === "adzuna" ? "View full listing & apply" : "Apply on company site"}
               </a>

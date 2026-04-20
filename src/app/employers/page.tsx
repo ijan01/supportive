@@ -11,26 +11,28 @@ export default function EmployersPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white py-20">
+      <section className="py-20 sm:py-28 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-violet-200 text-sm font-semibold uppercase tracking-widest mb-4">For employers</p>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-6">
+          <span className="inline-block px-4 py-1.5 rounded-full border border-violet-200 bg-violet-50 text-violet-600 text-sm font-medium mb-6">
+            For employers
+          </span>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-6">
             Hire the people who{" "}
-            <span className="text-amber-300">make a difference</span>
+            <span className="text-highlight">make a difference</span>
           </h1>
-          <p className="text-purple-100 text-lg mb-10 max-w-2xl mx-auto">
-            Supportive is built for mental health, AOD, NDIS, and community services employers. Reach candidates who are specifically looking for roles like yours — not sifting through generic job boards.
+          <p className="text-slate-500 text-lg mb-10 max-w-2xl mx-auto">
+            Supportive is built for mental health, AOD, NDIS, and community services employers. Reach candidates who are specifically looking for roles like yours.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/auth/register"
-              className="px-8 py-3.5 rounded-full bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300 transition-all shadow-lg"
+              className="px-8 py-3.5 rounded-full bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-all"
             >
               Post a role — it&apos;s free
             </Link>
             <Link
               href="/auth/login"
-              className="px-8 py-3.5 rounded-full border-2 border-white/60 text-white font-semibold hover:bg-white/10 transition-all"
+              className="px-8 py-3.5 rounded-full border-2 border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-all"
             >
               Sign in
             </Link>
@@ -39,14 +41,21 @@ export default function EmployersPage() {
       </section>
 
       {/* Why Supportive */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-lavender">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">Why post on Supportive?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="text-center mb-14">
+            <span className="inline-block px-4 py-1.5 rounded-full border border-violet-200 bg-white text-violet-600 text-sm font-medium mb-4">
+              Why Supportive
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+              Why post on <span className="text-highlight">Supportive?</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
                 heading: "Purpose-built taxonomy",
-                body: "Roles are categorised using the actual job titles used in the sector — psychologist, peer support worker, AOD counsellor, mental health nurse — not generic software developer buckets.",
+                body: "Roles are categorised using the actual job titles used in the sector — psychologist, peer support worker, AOD counsellor, mental health nurse — not generic buckets.",
               },
               {
                 heading: "Candidates already here for this",
@@ -57,8 +66,8 @@ export default function EmployersPage() {
                 body: "Posting is free during our launch phase. Create an account, fill in the form, and your role goes live immediately — no approval queue for employer-posted roles.",
               },
             ].map(({ heading, body }) => (
-              <div key={heading} className="bg-slate-50 rounded-xl p-6 border border-slate-100">
-                <h3 className="font-semibold text-slate-900 mb-2">{heading}</h3>
+              <div key={heading} className="bg-white rounded-2xl p-8 border border-slate-100 hover:border-violet-200 hover:shadow-lg transition-all">
+                <h3 className="font-bold text-slate-900 text-lg mb-2">{heading}</h3>
                 <p className="text-slate-500 text-sm leading-relaxed">{body}</p>
               </div>
             ))}
@@ -67,22 +76,29 @@ export default function EmployersPage() {
       </section>
 
       {/* How it works */}
-      <section className="py-16 bg-slate-50">
+      <section className="py-20 bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">How it works</h2>
+          <div className="text-center mb-14">
+            <span className="inline-block px-4 py-1.5 rounded-full border border-violet-200 bg-violet-50 text-violet-600 text-sm font-medium mb-4">
+              How it works
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+              Get started in <span className="text-highlight">three steps</span>
+            </h2>
+          </div>
           <ol className="space-y-8">
             {[
-              { step: "1", heading: "Create an employer account", body: "Register with your work email and organisation name. Takes about 60 seconds." },
-              { step: "2", heading: "Post your role", body: "Fill in the title, location, salary range, and description. Add an external apply URL or let candidates apply directly through Supportive." },
-              { step: "3", heading: "Review applications", body: "Applications appear in your employer dashboard as they come in. Shortlist, review, and contact candidates from one place." },
+              { step: "01", heading: "Create an employer account", body: "Register with your work email and organisation name. Takes about 60 seconds." },
+              { step: "02", heading: "Post your role", body: "Fill in the title, location, salary range, and description. Add an external apply URL or let candidates apply directly through Supportive." },
+              { step: "03", heading: "Review applications", body: "Applications appear in your employer dashboard as they come in. Shortlist, review, and contact candidates from one place." },
             ].map(({ step, heading, body }) => (
               <li key={step} className="flex gap-5">
-                <div className="w-9 h-9 rounded-full bg-violet-600 text-white font-bold flex items-center justify-center shrink-0 text-sm">
+                <div className="w-11 h-11 rounded-xl bg-violet-100 text-violet-600 font-bold flex items-center justify-center shrink-0 text-sm">
                   {step}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900 mb-1">{heading}</h3>
-                  <p className="text-slate-500 text-sm">{body}</p>
+                  <h3 className="font-bold text-slate-900 mb-1">{heading}</h3>
+                  <p className="text-slate-500 text-sm leading-relaxed">{body}</p>
                 </div>
               </li>
             ))}
@@ -91,12 +107,14 @@ export default function EmployersPage() {
       </section>
 
       {/* What roles fit */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-lavender">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-4">What kinds of roles belong here?</h2>
-          <p className="text-slate-500 text-center mb-10 max-w-xl mx-auto">
-            Supportive is for organisations operating in the mental health and community services sector — from large public health providers to small NDIS sole traders.
-          </p>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-3">What kinds of roles belong here?</h2>
+            <p className="text-slate-500 max-w-xl mx-auto">
+              Supportive is for organisations operating in the mental health and community services sector — from large public health providers to small NDIS sole traders.
+            </p>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm text-slate-700">
             {[
               "Psychologists & clinical psychologists",
@@ -112,7 +130,7 @@ export default function EmployersPage() {
               "Case managers",
               "Team leaders & clinical leads",
             ].map((role) => (
-              <div key={role} className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50">
+              <div key={role} className="flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-200 bg-white">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0" />
                 {role}
               </div>
@@ -122,16 +140,18 @@ export default function EmployersPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-gradient-to-r from-violet-600 to-purple-600 text-white text-center">
-        <div className="max-w-2xl mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-4">Ready to post your first role?</h2>
-          <p className="text-purple-100 mb-8">Create a free employer account and be live in minutes.</p>
-          <Link
-            href="/auth/register"
-            className="inline-block px-8 py-3.5 rounded-full bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300 transition-all shadow-lg"
-          >
-            Create employer account
-          </Link>
+      <section className="py-20 bg-white">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="bg-violet-600 rounded-3xl p-10 sm:p-14 text-white text-center">
+            <h2 className="text-3xl font-extrabold mb-4">Ready to post your first role?</h2>
+            <p className="text-violet-100 text-lg mb-8">Create a free employer account and be live in minutes.</p>
+            <Link
+              href="/auth/register"
+              className="inline-block px-8 py-3.5 rounded-full bg-white text-violet-600 font-semibold hover:bg-violet-50 transition-all"
+            >
+              Create employer account
+            </Link>
+          </div>
         </div>
       </section>
     </>

@@ -9,7 +9,7 @@ function SubmitButton({ pending }: { pending: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="w-full py-3 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold hover:from-violet-700 hover:to-purple-700 transition-all disabled:opacity-50"
+      className="w-full py-3 rounded-full bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-all disabled:opacity-50"
     >
       {pending ? "Creating account..." : "Create account"}
     </button>
@@ -21,10 +21,10 @@ export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(registerAction, null);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 bg-gradient-to-br from-violet-50 to-purple-50">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 bg-lavender">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Create account</h1>
+        <div className="bg-white rounded-2xl border border-slate-200 p-8">
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Create account</h1>
           <p className="text-slate-500 mb-6">Get started in under a minute</p>
 
           <div className="grid grid-cols-2 gap-3 mb-6">
@@ -55,7 +55,7 @@ export default function RegisterPage() {
           </div>
 
           {state?.error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm">{state.error}</div>
+            <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">{state.error}</div>
           )}
 
           <form action={formAction} className="space-y-4">
@@ -66,7 +66,7 @@ export default function RegisterPage() {
                 name="name"
                 type="text"
                 required
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               />
             </div>
             {role === "company" && (
@@ -76,7 +76,7 @@ export default function RegisterPage() {
                   name="companyName"
                   type="text"
                   required
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                 />
               </div>
             )}
@@ -86,7 +86,7 @@ export default function RegisterPage() {
                 name="email"
                 type="email"
                 required
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -96,7 +96,7 @@ export default function RegisterPage() {
                 type="password"
                 required
                 minLength={6}
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               />
               <p className="text-xs text-slate-400 mt-1">At least 6 characters</p>
             </div>

@@ -62,28 +62,28 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {error && <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm">{error}</div>}
+      {error && <div className="p-3 rounded-xl bg-red-50 text-red-600 text-sm">{error}</div>}
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Job Title *</label>
-        <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500" />
+        <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Company *</label>
-        <input type="text" required value={company} onChange={(e) => setCompany(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500" />
+        <input type="text" required value={company} onChange={(e) => setCompany(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Location *</label>
-          <select value={location} onChange={(e) => setLocation(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
+          <select value={location} onChange={(e) => setLocation(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white">
             {AU_LOCATIONS.map((l) => <option key={l.name} value={l.name}>{l.name}</option>)}
           </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Role category *</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white">
             {MH_ROLE_GROUPS.map((group) => (
               <optgroup key={group.slug} label={group.label}>
                 {MH_ROLES.filter((r) => r.group === group.slug).map((role) => (
@@ -95,7 +95,7 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Job Type *</label>
-          <select value={jobType} onChange={(e) => setJobType(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white">
+          <select value={jobType} onChange={(e) => setJobType(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white">
             {JOB_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
@@ -104,32 +104,32 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Salary min (AUD)</label>
-          <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="80000" className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500" />
+          <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="80000" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Salary max (AUD)</label>
-          <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="120000" className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500" />
+          <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="120000" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" />
         </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Description *</label>
-        <textarea required rows={6} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+        <textarea required rows={6} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none" />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Requirements *</label>
-        <textarea required rows={5} value={requirements} onChange={(e) => setRequirements(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none" />
+        <textarea required rows={5} value={requirements} onChange={(e) => setRequirements(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none" />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">External apply URL</label>
-        <input type="url" value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="https://..." className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500" />
+        <input type="url" value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="https://..." className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" />
         <p className="text-xs text-slate-400 mt-1">If provided, the "Apply" button links to this URL. Leave blank and candidates will apply directly through Supportive.</p>
       </div>
 
       <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={loading} className="px-8 py-3 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold hover:from-violet-700 hover:to-purple-700 transition-all disabled:opacity-50">
+        <button type="submit" disabled={loading} className="px-8 py-3 rounded-full bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-all disabled:opacity-50">
           {loading ? "Saving..." : existingJob ? "Update Job" : "Post Job"}
         </button>
         <button type="button" onClick={() => router.back()} className="px-6 py-3 rounded-full border-2 border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all">
