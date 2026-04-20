@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ReviewQueuePage() {
   const session = await getSession();
-  if (!session?.user || session.user.role !== "company") redirect("/auth/login");
+  if (!session?.user || session.user.role !== "admin") redirect("/auth/login");
 
   const jobs = await getJobsByStatus("review_queue");
 

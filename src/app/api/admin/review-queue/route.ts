@@ -4,7 +4,7 @@ import { updateJobStatus, remapJobRole } from "@/lib/feed-jobs";
 
 export async function POST(request: NextRequest) {
   const session = await getSessionFromRequest(request);
-  if (!session?.user || session.user.role !== "company") {
+  if (!session?.user || session.user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   }
 

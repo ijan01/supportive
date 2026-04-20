@@ -11,7 +11,7 @@ export async function initSchema(): Promise<void> {
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       name TEXT NOT NULL,
-      role TEXT NOT NULL CHECK (role IN ('company', 'seeker')),
+      role TEXT NOT NULL CHECK (role IN ('company', 'seeker', 'admin')),
       company_name TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
@@ -108,6 +108,10 @@ export async function initSchema(): Promise<void> {
       metadata JSONB
     )
   `;
+
+  // Migrate role constraint to include admin
+  await sql`ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check`.catch(() => {});
+  await sql`ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('company', 'seeker', 'admin'))`.catch(() => {});
 
   // Migrate existing tables that predate the feed columns
   await addFeedColumns();

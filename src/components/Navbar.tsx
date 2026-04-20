@@ -9,7 +9,8 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const user = session?.user as { role?: string } | undefined;
-  const dashboardPath = user?.role === "company" ? "/dashboard/company" : "/dashboard/seeker";
+  const isAdmin = user?.role === "admin";
+  const dashboardPath = isAdmin ? "/admin" : user?.role === "company" ? "/dashboard/company" : "/dashboard/seeker";
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-slate-100">

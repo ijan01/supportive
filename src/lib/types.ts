@@ -1,8 +1,10 @@
+export type UserRole = "company" | "seeker" | "admin";
+
 export interface User {
   id: number;
   email: string;
   name: string;
-  role: "company" | "seeker";
+  role: UserRole;
   company_name: string | null;
   created_at: string;
 }

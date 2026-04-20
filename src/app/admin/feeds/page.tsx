@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function FeedsAdminPage() {
   const session = await getSession();
-  if (!session?.user || session.user.role !== "company") redirect("/auth/login");
+  if (!session?.user || session.user.role !== "admin") redirect("/auth/login");
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

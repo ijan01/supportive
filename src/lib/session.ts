@@ -10,11 +10,13 @@ function cookieName() {
     : "authjs.session-token";
 }
 
+export type SessionRole = "seeker" | "company" | "admin";
+
 export interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "seeker" | "company";
+  role: SessionRole;
   companyName: string | null;
 }
 
@@ -35,7 +37,7 @@ export async function getSession(): Promise<Session | null> {
         id: token.id as string,
         email: token.email as string,
         name: token.name as string,
-        role: token.role as "seeker" | "company",
+        role: token.role as SessionRole,
         companyName: (token.companyName as string) || null,
       },
     };
@@ -58,7 +60,7 @@ export async function getSessionFromRequest(request: NextRequest): Promise<Sessi
       id: token.id as string,
       email: token.email as string,
       name: token.name as string,
-      role: token.role as "seeker" | "company",
+      role: token.role as SessionRole,
       companyName: (token.companyName as string) || null,
     },
   };

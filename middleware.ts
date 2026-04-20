@@ -15,6 +15,23 @@ export async function middleware(request: NextRequest) {
   });
   const { pathname } = request.nextUrl;
 
+  if (pathname.startsWith("/api/admin")) {
+    if (!token || token.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/admin")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/auth/login", request.url));
+    }
+    if (token.role !== "admin") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/dashboard") && !token) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
@@ -23,5 +40,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/api/admin/:path*"],
 };

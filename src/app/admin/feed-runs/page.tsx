@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function FeedRunsPage() {
   const session = await getSession();
-  if (!session?.user || session.user.role !== "company") redirect("/auth/login");
+  if (!session?.user || session.user.role !== "admin") redirect("/auth/login");
 
   const runs = await getRecentFeedRuns();
 

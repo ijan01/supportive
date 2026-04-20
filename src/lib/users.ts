@@ -18,7 +18,7 @@ export async function createUser(
   email: string,
   password: string,
   name: string,
-  role: "company" | "seeker",
+  role: "company" | "seeker" | "admin",
   companyName?: string
 ): Promise<User> {
   await ensureInitialized();

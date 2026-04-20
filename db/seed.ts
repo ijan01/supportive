@@ -17,6 +17,7 @@ async function seed() {
 
   const companyHash = hashSync("password123", 12);
   const seekerHash = hashSync("password123", 12);
+  const adminHash = hashSync("password123", 12);
 
   const companyResult = await sql`
     INSERT INTO users (email, password_hash, name, role, company_name)
@@ -26,6 +27,10 @@ async function seed() {
   await sql`
     INSERT INTO users (email, password_hash, name, role, company_name)
     VALUES ('seeker@demo.com', ${seekerHash}, 'Alex Smith', 'seeker', NULL)
+  `;
+  await sql`
+    INSERT INTO users (email, password_hash, name, role, company_name)
+    VALUES ('admin@supportive.com.au', ${adminHash}, 'Admin', 'admin', NULL)
   `;
 
   const userId = companyResult.rows[0].id as number;
