@@ -27,7 +27,7 @@ export default function RunNowClient() {
     setRunning(true);
     setResult(null);
     try {
-      const res = await fetch(`/api/cron/ingest-adzuna?dry=${dryRun ? "1" : "0"}`);
+      const res = await fetch(`/api/admin/ingest?dry=${dryRun ? "1" : "0"}`);
       const data = await res.json();
       setResult(data);
     } catch (err) {
