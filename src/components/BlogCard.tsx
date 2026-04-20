@@ -9,9 +9,7 @@ export default function BlogCard({ post }: { post: BlogPost }) {
   return (
     <Link href={`/blog/${post.slug}`} className="group block">
       <article className="h-full bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-xl hover:scale-[1.02] transition-all duration-200">
-        <div className="h-40 bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-600 flex items-center justify-center">
-          <span className="text-5xl">📝</span>
-        </div>
+        <div className="h-40 bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-600" />
         <div className="p-6">
           <div className="text-xs text-violet-600 font-semibold uppercase tracking-wide mb-2">{date}</div>
           <h3 className="text-lg font-semibold text-slate-900 group-hover:text-violet-600 transition-colors mb-2 line-clamp-2">

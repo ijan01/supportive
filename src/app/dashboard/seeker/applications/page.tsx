@@ -20,7 +20,11 @@ export default async function ApplicationsPage() {
 
       {applications.length === 0 ? (
         <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-          <div className="text-5xl mb-4">📝</div>
+          <div className="w-12 h-12 mx-auto mb-4 text-slate-300">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
+            </svg>
+          </div>
           <h3 className="text-lg font-semibold text-slate-700 mb-2">No applications yet</h3>
           <p className="text-slate-500 mb-6">Start applying to jobs to see them here.</p>
           <Link href="/jobs" className="inline-block px-6 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold">

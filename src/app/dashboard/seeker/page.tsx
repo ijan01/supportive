@@ -44,8 +44,12 @@ export default async function SeekerDashboard() {
         </div>
         {applications.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
-            <div className="text-4xl mb-3">📝</div>
-            <p className="text-slate-500 mb-4">You haven&apos;t applied to any jobs yet.</p>
+            <div className="w-10 h-10 mx-auto mb-3 text-slate-300">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
+              </svg>
+            </div>
+            <p className="text-slate-500 mb-4">You haven&apos;t applied to any roles yet.</p>
             <Link href="/jobs" className="inline-block px-6 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold">
               Browse Jobs
             </Link>
@@ -73,7 +77,11 @@ export default async function SeekerDashboard() {
         <h2 className="text-xl font-bold text-slate-900 mb-4">Saved Jobs</h2>
         {savedJobs.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
-            <div className="text-4xl mb-3">🔖</div>
+            <div className="w-10 h-10 mx-auto mb-3 text-slate-300">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+              </svg>
+            </div>
             <p className="text-slate-500 mb-4">You haven&apos;t saved any jobs yet.</p>
             <Link href="/jobs" className="inline-block px-6 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold">
               Browse Jobs

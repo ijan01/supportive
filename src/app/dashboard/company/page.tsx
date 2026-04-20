@@ -49,7 +49,11 @@ export default async function CompanyDashboard() {
 
       {jobs.length === 0 ? (
         <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-          <div className="text-5xl mb-4">📋</div>
+          <div className="w-12 h-12 mx-auto mb-4 text-slate-300">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>
+            </svg>
+          </div>
           <h3 className="text-lg font-semibold text-slate-700 mb-2">No jobs posted yet</h3>
           <p className="text-slate-500 mb-6">Create your first job posting to start receiving applications.</p>
           <Link href="/dashboard/company/post-job" className="inline-block px-6 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold">
