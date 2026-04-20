@@ -1,12 +1,16 @@
 import { sql, ensureInitialized } from "./db";
 import { Job, JobFilters, CreateJobInput, JobWithApplicationCount } from "./types";
 
+const PAGE_SIZE = 20;
+
 export async function getJobs(filters?: JobFilters): Promise<Job[]> {
   await ensureInitialized();
   const search = filters?.search ? `%${filters.search}%` : null;
   const location = filters?.location || null;
   const category = filters?.category || null;
   const jobType = filters?.job_type || null;
+  const limit = filters?.limit ?? PAGE_SIZE;
+  const offset = ((filters?.page ?? 1) - 1) * limit;
 
   const result = await sql`
     SELECT * FROM jobs
@@ -15,9 +19,28 @@ export async function getJobs(filters?: JobFilters): Promise<Job[]> {
       AND (${location}::text IS NULL OR location = ${location})
       AND (${category}::text IS NULL OR category = ${category})
       AND (${jobType}::text IS NULL OR job_type = ${jobType})
-    ORDER BY is_featured DESC, created_at DESC
+    ORDER BY is_featured DESC, posted_date DESC NULLS LAST, created_at DESC
+    LIMIT ${limit} OFFSET ${offset}
   `;
   return result.rows as Job[];
+}
+
+export async function getJobCount(filters?: Omit<JobFilters, "page" | "limit">): Promise<number> {
+  await ensureInitialized();
+  const search = filters?.search ? `%${filters.search}%` : null;
+  const location = filters?.location || null;
+  const category = filters?.category || null;
+  const jobType = filters?.job_type || null;
+
+  const result = await sql`
+    SELECT COUNT(*)::integer AS count FROM jobs
+    WHERE status = 'active'
+      AND (${search}::text IS NULL OR title ILIKE ${search} OR company ILIKE ${search})
+      AND (${location}::text IS NULL OR location = ${location})
+      AND (${category}::text IS NULL OR category = ${category})
+      AND (${jobType}::text IS NULL OR job_type = ${jobType})
+  `;
+  return result.rows[0].count as number;
 }
 
 export async function getJobById(id: number): Promise<Job | undefined> {

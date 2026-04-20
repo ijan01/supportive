@@ -59,6 +59,8 @@ export interface JobFilters {
   location?: string;
   category?: string;
   job_type?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface CreateJobInput {
