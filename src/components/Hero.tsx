@@ -24,8 +24,7 @@ export default function Hero() {
     <section className="bg-white py-20 sm:py-28 lg:py-32">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
-          Find <span className="text-highlight">meaningful</span> careers in{" "}
-          <span className="text-highlight">mental health</span>
+          Find <span className="text-highlight">meaningful</span> careers<br className="hidden sm:inline" /> in <span className="text-highlight">mental&nbsp;health</span>
         </h1>
         <p className="mt-6 text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
           Browse clinical, community, AOD, peer work, and NDIS roles posted by mission-aligned employers across Australia.
