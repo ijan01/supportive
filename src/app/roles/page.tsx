@@ -13,10 +13,12 @@ export default function RolesIndexPage() {
     <>
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
             Mental health <span className="text-highlight">roles</span>
           </h1>
-          <p className="text-slate-500 text-lg">Browse all 18 role categories across clinical, allied health, community, and leadership.</p>
+          <p className="text-slate-500 text-lg leading-relaxed max-w-2xl">
+            Australia's mental health workforce spans clinical, allied health, community, and leadership roles. Browse all 18 role categories to find current listings, salary guides, qualification requirements, and career pathways.
+          </p>
         </div>
       </section>
 

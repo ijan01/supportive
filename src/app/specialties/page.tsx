@@ -13,10 +13,12 @@ export default function SpecialtiesIndexPage() {
     <>
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
             <span className="text-highlight">Specialisations</span>
           </h1>
-          <p className="text-slate-500 text-lg">Browse roles by area of practice across {AU_SPECIALTIES.length} specialisations.</p>
+          <p className="text-slate-500 text-lg leading-relaxed max-w-2xl">
+            Mental health practice spans a wide range of specialisations, each with its own evidence base, workforce, and career pathways. Browse roles by area of practice to find positions that match your expertise and interests.
+          </p>
         </div>
       </section>
 

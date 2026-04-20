@@ -16,10 +16,12 @@ export default function LocationsIndexPage() {
     <>
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
             Jobs by <span className="text-highlight">location</span>
           </h1>
-          <p className="text-slate-500 text-lg">Find mental health and supportive services roles in your city or state.</p>
+          <p className="text-slate-500 text-lg leading-relaxed max-w-2xl">
+            Mental health services operate in every state and territory across Australia. Browse roles by city to find opportunities near you, or explore remote and hybrid options for location-flexible work.
+          </p>
         </div>
       </section>
 

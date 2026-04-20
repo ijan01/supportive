@@ -11,6 +11,8 @@ import newcastleNSW from "./newcastle-nsw";
 import wollongongNSW from "./wollongong-nsw";
 import goldCoastQLD from "./gold-coast-qld";
 import geelongVIC from "./geelong-vic";
+import remoteAustralia from "./remote-australia";
+import hybrid from "./hybrid";
 
 const ALL_LOCATION_CONTENT: LocationContent[] = [
   sydneyNSW,
@@ -25,6 +27,8 @@ const ALL_LOCATION_CONTENT: LocationContent[] = [
   wollongongNSW,
   goldCoastQLD,
   geelongVIC,
+  remoteAustralia,
+  hybrid,
 ];
 
 export const LOCATION_CONTENT: Record<string, LocationContent> = Object.fromEntries(
