@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MH_ROLES, MH_ROLE_GROUPS, AU_LOCATIONS } from "@/constants";
 
-export default function Hero() {
+export default function Hero({ jobCount }: { jobCount?: number }) {
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("");
@@ -77,6 +77,20 @@ export default function Hero() {
             </div>
           </div>
         </form>
+
+        <div className="mt-6 flex items-center justify-center gap-6 sm:gap-8 text-xs sm:text-sm text-slate-400">
+          <span><strong className="text-violet-600 font-bold">18</strong> role categories</span>
+          <span className="text-slate-200">|</span>
+          <span><strong className="text-violet-600 font-bold">8</strong> states</span>
+          <span className="text-slate-200">|</span>
+          <span><strong className="text-violet-600 font-bold">10</strong> specialisations</span>
+          {jobCount !== undefined && jobCount > 0 && (
+            <>
+              <span className="text-slate-200">|</span>
+              <span><strong className="text-violet-600 font-bold">{jobCount}</strong> active roles</span>
+            </>
+          )}
+        </div>
       </div>
     </section>
   );

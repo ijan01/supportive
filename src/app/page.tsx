@@ -1,20 +1,22 @@
 import Link from "next/link";
 import Hero from "@/components/Hero";
 import JobCard from "@/components/JobCard";
-import StatsSection from "@/components/StatsSection";
-import { getFeaturedJobs } from "@/lib/jobs";
+import { getFeaturedJobs, getJobCount } from "@/lib/jobs";
 import { getBlogPosts } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const featuredJobs = await getFeaturedJobs(6);
-  const blogPosts = (await getBlogPosts()).slice(0, 3);
+  const [featuredJobs, blogPostsAll, jobCount] = await Promise.all([
+    getFeaturedJobs(6),
+    getBlogPosts(),
+    getJobCount().catch(() => 0),
+  ]);
+  const blogPosts = blogPostsAll.slice(0, 3);
 
   return (
     <>
-      <Hero />
-      <StatsSection />
+      <Hero jobCount={jobCount} />
 
       {/* How it works */}
       <section className="py-20 bg-lavender">
