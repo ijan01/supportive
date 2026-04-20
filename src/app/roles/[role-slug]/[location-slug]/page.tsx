@@ -4,6 +4,8 @@ import Link from "next/link";
 import { MH_ROLES, AU_LOCATIONS } from "@/constants";
 import { shouldNoindex } from "@/lib/noindex";
 import { getJobCountByRoleAndLocation, getJobsByRoleAndLocation } from "@/lib/jobs";
+import { getRoleLocationContent } from "@/content/role-location";
+import { formatSalary } from "@/lib/utils";
 import JobCard from "@/components/JobCard";
 
 export function generateStaticParams() {
@@ -25,6 +27,8 @@ export async function generateMetadata({
   const loc = AU_LOCATIONS.find((l) => l.slug === p["location-slug"]);
   if (!role || !loc) return { title: "Not found" };
 
+  const content = getRoleLocationContent(p["role-slug"], p["location-slug"]);
+
   let listingsCount = 0;
   try {
     listingsCount = await getJobCountByRoleAndLocation(role.name, loc.name);
@@ -32,16 +36,21 @@ export async function generateMetadata({
     // DB not available at build time
   }
 
+  // Pages with editorial content have ~200 words regardless of listings
+  const contentWordCount = content ? 200 : 0;
+
   const noindex = shouldNoindex({
     listingsCount,
     historicalCount: 0,
-    contentWordCount: 0,
+    contentWordCount,
     hasCustomMeta: false,
   });
 
   return {
     title: `${role.name} jobs in ${loc.name}`,
-    description: `Browse ${role.name} roles in ${loc.name}. Find opportunities with mission-aligned mental health employers on Supportive.`,
+    description: content
+      ? `Find ${role.name} jobs in ${loc.name}. ${content.demandNote} Browse current listings on Supportive.`
+      : `Browse ${role.name} roles in ${loc.name}. Find opportunities with mission-aligned mental health employers on Supportive.`,
     alternates: { canonical: `/roles/${p["role-slug"]}/${p["location-slug"]}` },
     ...(noindex && { robots: { index: false, follow: true } }),
   };
@@ -56,6 +65,8 @@ export default async function RoleLocationPage({
   const role = MH_ROLES.find((r) => r.slug === p["role-slug"]);
   const loc = AU_LOCATIONS.find((l) => l.slug === p["location-slug"]);
   if (!role || !loc) notFound();
+
+  const content = getRoleLocationContent(p["role-slug"], p["location-slug"]);
 
   let jobs: Awaited<ReturnType<typeof getJobsByRoleAndLocation>> = [];
   try {
@@ -81,6 +92,7 @@ export default async function RoleLocationPage({
           : "No current listings in this location"}
       </p>
 
+      {/* Live job listings */}
       {jobs.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {jobs.map((job) => (
@@ -100,7 +112,57 @@ export default async function RoleLocationPage({
         </div>
       )}
 
-      <div className="flex gap-3">
+      {/* Editorial content */}
+      {content && (
+        <div className="mt-10 space-y-8 border-t border-slate-100 pt-10">
+          <section>
+            <h2 className="text-xl font-bold text-slate-900 mb-4">{role.name} work in {loc.name}</h2>
+            <p className="text-slate-600 leading-relaxed mb-4">{content.intro}</p>
+            <p className="text-slate-600 leading-relaxed mb-4">{content.roleContext}</p>
+            <p className="text-slate-600 leading-relaxed">{content.locationContext}</p>
+          </section>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+              <h2 className="text-base font-semibold text-slate-900 mb-2">Typical salary</h2>
+              <p className="text-2xl font-bold text-violet-700 mb-1">
+                {formatSalary(content.salaryMin, content.salaryMax)}
+              </p>
+              <p className="text-sm text-slate-500">{content.salaryNote}</p>
+            </section>
+
+            <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+              <h2 className="text-base font-semibold text-slate-900 mb-2">Registration</h2>
+              <p className="text-sm text-slate-600">{content.registration}</p>
+            </section>
+          </div>
+
+          <section>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">Qualifications typically required</h2>
+            <ul className="space-y-2">
+              {content.qualifications.map((q, i) => (
+                <li key={i} className="flex items-start gap-3 text-slate-600 text-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0 mt-2" />
+                  {q}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">Key employers in {loc.name}</h2>
+            <ul className="flex flex-wrap gap-2">
+              {content.keyEmployers.map((employer) => (
+                <li key={employer} className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-sm text-slate-600">
+                  {employer}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      )}
+
+      <div className="mt-10 flex gap-3">
         <Link href={`/roles/${p["role-slug"]}`} className="text-violet-600 hover:text-violet-700 text-sm font-medium">
           &larr; All {role.name} roles
         </Link>
