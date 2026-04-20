@@ -3,7 +3,7 @@ import { BlogPost } from "@/lib/types";
 
 export default function BlogCard({ post }: { post: BlogPost }) {
   const date = post.published_at
-    ? new Date(post.published_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    ? new Date(post.published_at).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
     : "";
 
   return (
