@@ -16,7 +16,7 @@ export default function EmployersPage() {
           <span className="inline-block px-4 py-1.5 rounded-full border border-violet-200 bg-violet-50 text-violet-600 text-sm font-medium mb-6">
             For employers
           </span>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-6">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-[1.3] mb-6">
             Hire the people who{" "}
             <span className="text-highlight">make&nbsp;a&nbsp;difference</span>
           </h1>
@@ -47,7 +47,7 @@ export default function EmployersPage() {
             <span className="inline-block px-4 py-1.5 rounded-full border border-violet-200 bg-white text-violet-600 text-sm font-medium mb-4">
               Why Supportive
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-[1.3]">
               Why post on <span className="text-highlight">Supportive?</span>
             </h2>
           </div>
@@ -82,7 +82,7 @@ export default function EmployersPage() {
             <span className="inline-block px-4 py-1.5 rounded-full border border-violet-200 bg-violet-50 text-violet-600 text-sm font-medium mb-4">
               How it works
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-[1.3]">
               Get started in <span className="text-highlight">three&nbsp;steps</span>
             </h2>
           </div>

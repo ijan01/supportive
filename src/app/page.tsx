@@ -23,7 +23,7 @@ export default async function Home() {
             <span className="inline-block px-4 py-1.5 rounded-full border border-violet-200 bg-white text-violet-600 text-sm font-medium mb-4">
               How it works
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-[1.3]">
               Find your next role in{" "}
               <span className="text-highlight">three&nbsp;simple&nbsp;steps</span>
             </h2>
@@ -67,7 +67,7 @@ export default async function Home() {
                 <span className="inline-block px-4 py-1.5 rounded-full border border-violet-200 bg-violet-50 text-violet-600 text-sm font-medium mb-3">
                   Latest roles
                 </span>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-[1.3]">
                   Take a look at{" "}
                   <span className="text-highlight">recent&nbsp;openings</span>
                 </h2>
@@ -92,7 +92,7 @@ export default async function Home() {
             <span className="inline-block px-4 py-1.5 rounded-full border border-violet-200 bg-white text-violet-600 text-sm font-medium mb-4">
               Why Supportive
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-[1.3]">
               Built specifically for{" "}
               <span className="text-highlight">mental&nbsp;health&nbsp;careers</span>
             </h2>
@@ -202,7 +202,7 @@ export default async function Home() {
       {/* CTA */}
       <section className="py-20 bg-white">
         <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-[1.3] mb-4">
             Ready to find your{" "}
             <span className="text-highlight">next&nbsp;role?</span>
           </h2>
