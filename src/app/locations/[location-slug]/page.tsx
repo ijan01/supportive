@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { AU_LOCATIONS, MH_ROLES } from "@/constants";
 import { getJobs, getJobCount } from "@/lib/jobs";
+import { LOCATION_CONTENT } from "@/content/locations";
 import JobCard from "@/components/JobCard";
 
 export function generateStaticParams() {
@@ -18,6 +19,8 @@ export async function generateMetadata({
   const loc = AU_LOCATIONS.find((l) => l.slug === p["location-slug"]);
   if (!loc) return { title: "Not found" };
 
+  const content = LOCATION_CONTENT[p["location-slug"]];
+
   let count = 0;
   try {
     count = await getJobCount({ location: loc.name });
@@ -27,7 +30,7 @@ export async function generateMetadata({
 
   return {
     title: `Mental health jobs in ${loc.name}`,
-    description: `Browse ${count > 0 ? `${count} ` : ""}mental health and supportive services roles in ${loc.name}. Find clinical, allied health, community, and NDIS positions on Supportive.`,
+    description: content?.summary ?? `Browse ${count > 0 ? `${count} ` : ""}mental health and supportive services roles in ${loc.name}. Find clinical, allied health, community, and NDIS positions on Supportive.`,
     alternates: { canonical: `/locations/${p["location-slug"]}` },
   };
 }
@@ -40,6 +43,8 @@ export default async function LocationHubPage({
   const p = await params;
   const loc = AU_LOCATIONS.find((l) => l.slug === p["location-slug"]);
   if (!loc) notFound();
+
+  const content = LOCATION_CONTENT[p["location-slug"]];
 
   let jobs: Awaited<ReturnType<typeof getJobs>> = [];
   let total = 0;
@@ -67,6 +72,7 @@ export default async function LocationHubPage({
           : "No current listings — check back soon."}
       </p>
 
+      {/* Live job listings */}
       {jobs.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -98,19 +104,51 @@ export default async function LocationHubPage({
         </div>
       )}
 
-      <h2 className="text-lg font-semibold text-slate-800 mb-4">Browse by role in {loc.name}</h2>
-      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {MH_ROLES.map((role) => (
-          <li key={role.slug}>
-            <Link
-              href={`/roles/${role.slug}/${p["location-slug"]}`}
-              className="block px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 hover:border-violet-300 hover:text-violet-700 transition-all"
-            >
-              {role.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {/* Editorial content */}
+      {content && (
+        <div className="mt-12 space-y-10 border-t border-slate-100 pt-10">
+          <section>
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Mental health work in {loc.name}</h2>
+            <div className="space-y-4">
+              {content.about.map((para, i) => (
+                <p key={i} className="text-slate-600 leading-relaxed">{para}</p>
+              ))}
+            </div>
+          </section>
+
+          <section className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+            <h2 className="text-base font-semibold text-slate-900 mb-3">Workforce demand</h2>
+            <p className="text-sm text-slate-600">{content.demandNote}</p>
+          </section>
+
+          <section>
+            <h2 className="text-base font-semibold text-slate-900 mb-3">Key employers in {loc.name}</h2>
+            <ul className="flex flex-wrap gap-2">
+              {content.keyEmployers.map((employer) => (
+                <li key={employer} className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-sm text-slate-600">
+                  {employer}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      )}
+
+      <div className="mt-12">
+        <h2 className="text-lg font-semibold text-slate-800 mb-4">Browse roles in {loc.name}</h2>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {MH_ROLES.map((role) => (
+            <li key={role.slug}>
+              <Link
+                href={`/roles/${role.slug}/${p["location-slug"]}`}
+                className="block px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 hover:border-violet-300 hover:text-violet-700 transition-all"
+              >
+                {role.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
