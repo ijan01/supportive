@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { JOB_TYPES, MH_ROLES, MH_ROLE_GROUPS, AU_LOCATIONS } from "@/constants";
 
@@ -7,42 +8,63 @@ export default function JobFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const search = searchParams.get("search") || "";
   const location = searchParams.get("location") || "";
   const category = searchParams.get("category") || "";
   const jobType = searchParams.get("job_type") || "";
 
-  function updateParams(key: string, value: string) {
+  const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
+
+  function buildParams(overrides: Record<string, string>) {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
+    for (const [key, value] of Object.entries(overrides)) {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
     }
-    router.push(`/jobs?${params.toString()}`);
+    return params.toString();
+  }
+
+  function submitSearch() {
+    router.push(`/jobs?${buildParams({ search: searchValue })}`);
+  }
+
+  function updateParam(key: string, value: string) {
+    router.push(`/jobs?${buildParams({ [key]: value })}`);
   }
 
   function clearAll() {
+    setSearchValue("");
     router.push("/jobs");
   }
 
-  const hasFilters = search || location || category || jobType;
+  const hasFilters = searchValue || location || category || jobType;
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
       <div className="flex flex-col sm:flex-row gap-3">
-        <input
-          type="text"
-          placeholder="Search roles or organisations..."
-          defaultValue={search}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") updateParams("search", e.currentTarget.value);
-          }}
-          className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-        />
+        <div className="flex flex-1 gap-2">
+          <input
+            type="text"
+            placeholder="Search roles or organisations..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submitSearch();
+            }}
+            className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+          />
+          <button
+            onClick={submitSearch}
+            className="px-4 py-2.5 rounded-lg bg-violet-600 text-white font-medium hover:bg-violet-700 transition-colors shrink-0"
+          >
+            Search
+          </button>
+        </div>
         <select
           value={location}
-          onChange={(e) => updateParams("location", e.target.value)}
+          onChange={(e) => updateParam("location", e.target.value)}
           className="px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
         >
           <option value="">All locations</option>
@@ -52,7 +74,7 @@ export default function JobFilters() {
         </select>
         <select
           value={category}
-          onChange={(e) => updateParams("category", e.target.value)}
+          onChange={(e) => updateParam("category", e.target.value)}
           className="px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
         >
           <option value="">All roles</option>
@@ -66,7 +88,7 @@ export default function JobFilters() {
         </select>
         <select
           value={jobType}
-          onChange={(e) => updateParams("job_type", e.target.value)}
+          onChange={(e) => updateParam("job_type", e.target.value)}
           className="px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
         >
           <option value="">All types</option>
