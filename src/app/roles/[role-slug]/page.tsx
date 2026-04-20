@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
 import { MH_ROLES, AU_LOCATIONS } from "@/constants";
+import { getJobs, getJobCount } from "@/lib/jobs";
+import JobCard from "@/components/JobCard";
 
 export function generateStaticParams() {
   return MH_ROLES.map((r) => ({ "role-slug": r.slug }));
@@ -15,9 +17,17 @@ export async function generateMetadata({
   const p = await params;
   const role = MH_ROLES.find((r) => r.slug === p["role-slug"]);
   if (!role) return { title: "Not found" };
+
+  let count = 0;
+  try {
+    count = await getJobCount({ category: role.name });
+  } catch {
+    // DB not available at build time
+  }
+
   return {
     title: `${role.name} jobs in Australia`,
-    description: `Browse ${role.name} roles across Australia. Find opportunities with mission-aligned mental health and community services employers on Supportive.`,
+    description: `Browse ${count > 0 ? `${count} ` : ""}${role.name} roles across Australia. Find opportunities with mission-aligned mental health and community services employers on Supportive.`,
     alternates: { canonical: `/roles/${p["role-slug"]}` },
   };
 }
@@ -31,6 +41,17 @@ export default async function RoleHubPage({
   const role = MH_ROLES.find((r) => r.slug === p["role-slug"]);
   if (!role) notFound();
 
+  let jobs: Awaited<ReturnType<typeof getJobs>> = [];
+  let total = 0;
+  try {
+    [jobs, total] = await Promise.all([
+      getJobs({ category: role.name, limit: 6 }),
+      getJobCount({ category: role.name }),
+    ]);
+  } catch {
+    // DB not available at build time
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-2 text-sm text-slate-400">
@@ -39,12 +60,43 @@ export default async function RoleHubPage({
         <span>{role.name}</span>
       </div>
 
-      <h1 className="text-3xl font-bold text-slate-900 mb-4">{role.name} jobs in Australia</h1>
+      <h1 className="text-3xl font-bold text-slate-900 mb-2">{role.name} jobs in Australia</h1>
+      <p className="text-slate-500 mb-8">
+        {total > 0
+          ? `${total} current role${total !== 1 ? "s" : ""} available`
+          : "No current listings — check back soon."}
+      </p>
 
-      <div className="bg-violet-50 border border-violet-100 rounded-xl p-6 mb-10">
-        <p className="text-violet-700 font-medium mb-1">Coming soon — this hub is being built.</p>
-        <p className="text-violet-600 text-sm">This page will list all {role.name} roles across Australia, with editorial content about the role, salary benchmarks, and required qualifications.</p>
-      </div>
+      {jobs.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {jobs.map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
+          </div>
+          {total > 6 && (
+            <div className="mb-10">
+              <Link
+                href={`/jobs?category=${encodeURIComponent(role.name)}`}
+                className="inline-block px-6 py-2.5 rounded-full bg-violet-600 text-white font-medium hover:bg-violet-700 transition-all text-sm"
+              >
+                View all {total} {role.name} roles &rarr;
+              </Link>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 mb-10 text-center">
+          <p className="text-slate-600 font-medium mb-2">No {role.name} roles right now</p>
+          <p className="text-slate-500 text-sm mb-4">New roles are added daily. Check back soon or browse all current roles.</p>
+          <Link
+            href="/jobs"
+            className="inline-block px-6 py-2.5 rounded-full bg-violet-600 text-white font-medium hover:bg-violet-700 transition-all text-sm"
+          >
+            Browse all roles
+          </Link>
+        </div>
+      )}
 
       <h2 className="text-lg font-semibold text-slate-800 mb-4">Browse by location</h2>
       <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -59,12 +111,6 @@ export default async function RoleHubPage({
           </li>
         ))}
       </ul>
-
-      <div className="mt-8">
-        <Link href="/jobs" className="inline-block px-6 py-3 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold hover:from-violet-700 hover:to-purple-700 transition-all">
-          Browse all {role.name} roles →
-        </Link>
-      </div>
     </div>
   );
 }
