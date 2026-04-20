@@ -24,7 +24,7 @@ body {
 .text-highlight {
   background-color: var(--highlight);
   color: white;
-  padding: 0.12em 0.4em;
-  border-radius: 0.2em;
+  padding: 0.25em 0.5em;
+  border-radius: 0.25em;
   white-space: nowrap;
 }
