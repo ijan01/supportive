@@ -13,10 +13,8 @@ export default function NavbarClient({ user }: { user: NavbarUser | null }) {
   const isAdmin = user?.role === "admin";
   const dashboardPath = isAdmin ? "/admin" : user?.role === "company" ? "/dashboard/company" : "/dashboard/seeker";
 
-  async function handleSignOut() {
-    document.cookie = "authjs.session-token=; path=/; max-age=0";
-    document.cookie = "__Secure-authjs.session-token=; path=/; max-age=0; secure";
-    window.location.href = "/";
+  function handleSignOut() {
+    window.location.href = "/auth/signout";
   }
 
   return (
