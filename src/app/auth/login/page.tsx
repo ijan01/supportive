@@ -59,11 +59,6 @@ export default function LoginPage() {
             </Link>
           </p>
 
-          <div className="mt-6 pt-6 border-t border-slate-100">
-            <p className="text-xs text-slate-400 text-center mb-2">Demo accounts:</p>
-            <p className="text-xs text-slate-500 text-center">company@demo.com / password123</p>
-            <p className="text-xs text-slate-500 text-center">seeker@demo.com / password123</p>
-          </div>
         </div>
       </div>
     </div>
