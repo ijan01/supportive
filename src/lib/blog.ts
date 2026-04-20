@@ -31,6 +31,12 @@ export async function getBlogPostById(id: number): Promise<BlogPost | undefined>
   return result.rows[0] as BlogPost | undefined;
 }
 
+export async function getBlogPostBySlugAdmin(slug: string): Promise<BlogPost | undefined> {
+  await ensureInitialized();
+  const result = await sql`SELECT * FROM blog_posts WHERE slug = ${slug}`;
+  return result.rows[0] as BlogPost | undefined;
+}
+
 export async function createBlogPost(post: {
   title: string;
   slug: string;

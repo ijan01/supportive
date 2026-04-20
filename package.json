@@ -11,6 +11,7 @@
     "test": "tsx --test src/lib/noindex.test.ts src/lib/feeds/adzuna.test.ts src/lib/feeds/classifier.test.ts src/lib/feeds/ingest.test.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.90.0",
     "bcryptjs": "^3.0.3",
     "next": "16.2.4",
     "next-auth": "^5.0.0-beta.31",

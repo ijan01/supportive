@@ -275,6 +275,9 @@ function ContentCard({ item, onEdit, borderColor, small }: { item: ContentPlanIt
 function EditModal({ item, pillars, onClose, onSaved }: { item: ContentPlanItem; pillars: ContentPlanItem[]; onClose: () => void; onSaved: () => void }) {
   const [form, setForm] = useState({ ...item });
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generateResult, setGenerateResult] = useState<{ slug: string; title: string } | null>(null);
+  const [generateError, setGenerateError] = useState("");
 
   function set(key: string, value: unknown) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -289,6 +292,30 @@ function EditModal({ item, pillars, onClose, onSaved }: { item: ContentPlanItem;
     });
     setSaving(false);
     onSaved();
+  }
+
+  async function handleGenerate() {
+    setGenerating(true);
+    setGenerateError("");
+    setGenerateResult(null);
+    setForm((prev) => ({ ...prev, status: "Draft" as const }));
+
+    try {
+      const res = await fetch("/api/admin/content/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleId: form.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Generation failed");
+      setGenerateResult({ slug: data.slug, title: data.title });
+      setForm((prev) => ({ ...prev, slug: data.slug, status: "Draft" as const }));
+    } catch (err) {
+      setGenerateError(err instanceof Error ? err.message : "Generation failed");
+      setForm((prev) => ({ ...prev, status: item.status }));
+    } finally {
+      setGenerating(false);
+    }
   }
 
   async function handleMarkPublished() {
@@ -382,16 +409,45 @@ function EditModal({ item, pillars, onClose, onSaved }: { item: ContentPlanItem;
           </div>
         </div>
 
+        {generating && (
+          <div className="mt-4 p-4 rounded-xl bg-violet-50 border border-violet-100">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-violet-600 border-t-transparent rounded-full animate-spin shrink-0" />
+              <p className="text-sm text-violet-700 font-medium">Researching and writing article... This may take up to 2 minutes.</p>
+            </div>
+          </div>
+        )}
+
+        {generateResult && (
+          <div className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+            <p className="text-sm text-emerald-700 font-medium mb-2">Draft generated successfully!</p>
+            <a href={`/admin/blog/edit?id=0&slug=${generateResult.slug}`} className="text-sm text-emerald-600 underline hover:text-emerald-700">
+              Edit draft in blog editor →
+            </a>
+          </div>
+        )}
+
+        {generateError && (
+          <div className="mt-4 p-4 rounded-xl bg-red-50 border border-red-100">
+            <p className="text-sm text-red-700">{generateError}</p>
+          </div>
+        )}
+
         <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-100">
-          <button onClick={handleSave} disabled={saving} className="px-6 py-2.5 rounded-full bg-violet-600 text-white font-medium text-sm hover:bg-violet-700 disabled:opacity-50">
+          <button onClick={handleSave} disabled={saving || generating} className="px-6 py-2.5 rounded-full bg-violet-600 text-white font-medium text-sm hover:bg-violet-700 disabled:opacity-50">
             {saving ? "Saving..." : "Save"}
           </button>
-          {form.status !== "Published" && (
+          {(form.status === "Planned" || form.status === "Brief Ready") && !generating && !generateResult && (
+            <button onClick={handleGenerate} disabled={saving} className="px-4 py-2.5 rounded-full bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 disabled:opacity-50">
+              Generate Draft
+            </button>
+          )}
+          {form.status !== "Published" && !generating && (
             <button onClick={handleMarkPublished} disabled={saving} className="px-4 py-2.5 rounded-full border border-emerald-200 text-emerald-700 font-medium text-sm hover:bg-emerald-50 disabled:opacity-50">
               Mark Published
             </button>
           )}
-          <button onClick={onClose} className="px-4 py-2.5 rounded-full border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50 ml-auto">
+          <button onClick={onClose} disabled={generating} className="px-4 py-2.5 rounded-full border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50 ml-auto disabled:opacity-50">
             Cancel
           </button>
         </div>
