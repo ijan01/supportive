@@ -1,5 +1,5 @@
 import { sql, ensureInitialized } from "@/lib/db";
-import { searchAdzuna, AdzunaJob, AdzunaSearchParams } from "./adzuna";
+import { searchAdzunaAllPages, AdzunaJob, AdzunaSearchParams } from "./adzuna";
 import { classifyJob, classifyJobStatus, isEligible } from "./classifier";
 import { parseAdzunaLocation } from "./location-parser";
 import { MH_ROLES } from "@/constants";
@@ -18,6 +18,7 @@ export interface IngestStats {
 export interface IngestOptions {
   dryRun?: boolean;
   queries: AdzunaSearchParams[];
+  maxPages?: number;
 }
 
 function mapEmploymentType(
@@ -173,9 +174,11 @@ export async function ingestAdzuna(options: IngestOptions): Promise<IngestStats>
     const existingIds = options.dryRun ? new Set<string>() : await getExistingExternalIds();
 
     for (const query of options.queries) {
-      let response;
+      let allJobs: AdzunaJob[];
       try {
-        response = await searchAdzuna(query);
+        const result = await searchAdzunaAllPages(query, options.maxPages ?? 5);
+        allJobs = result.jobs;
+        console.log(`[ingest] query "${query.what}": ${allJobs.length} jobs across ${result.pagesUsed} pages (${result.totalAvailable} total available)`);
       } catch (err) {
         const msg = `Query "${query.what}" failed: ${err instanceof Error ? err.message : String(err)}`;
         console.error(`[ingest] ${msg}`);
@@ -183,7 +186,7 @@ export async function ingestAdzuna(options: IngestOptions): Promise<IngestStats>
         continue;
       }
 
-      for (const job of response.results) {
+      for (const job of allJobs) {
         stats.totalFetched++;
 
         // Stage 1: Deduplicate

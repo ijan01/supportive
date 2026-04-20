@@ -106,6 +106,28 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
   return res;
 }
 
+export async function searchAdzunaAllPages(
+  params: AdzunaSearchParams,
+  maxPages = 5
+): Promise<{ jobs: AdzunaJob[]; totalAvailable: number; pagesUsed: number }> {
+  const allJobs: AdzunaJob[] = [];
+  let totalAvailable = 0;
+  let page = 1;
+
+  while (page <= maxPages) {
+    const response = await searchAdzuna({ ...params, page });
+    totalAvailable = response.count;
+    allJobs.push(...response.results);
+
+    if (response.results.length < (params.results_per_page ?? 50) || allJobs.length >= totalAvailable) {
+      break;
+    }
+    page++;
+  }
+
+  return { jobs: allJobs, totalAvailable, pagesUsed: page };
+}
+
 export async function searchAdzuna(params: AdzunaSearchParams): Promise<AdzunaResponse> {
   const appId = process.env.ADZUNA_APP_ID;
   const appKey = process.env.ADZUNA_APP_KEY;
