@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { getAdminStats } from "@/lib/admin";
+import { getContentPlanStats } from "@/lib/content-plan";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const stats = await getAdminStats();
+  const [stats, contentStats] = await Promise.all([
+    getAdminStats(),
+    getContentPlanStats().catch(() => ({} as Record<string, number>)),
+  ]);
+  const contentActionable = (contentStats["Planned"] || 0) + (contentStats["Brief Ready"] || 0);
 
   const cards = [
     { label: "Total users", value: stats.totalUsers, href: "/admin/users" },
@@ -16,6 +21,7 @@ export default async function AdminDashboard() {
   ];
 
   const navItems = [
+    { label: "Content Plan", description: `Plan and track 100 SEO articles${contentActionable > 0 ? ` (${contentActionable} need action)` : ""}`, href: "/admin/content" },
     { label: "Blog", description: "Create, edit, and publish blog posts", href: "/admin/blog" },
     { label: "Jobs", description: "View, search, and manage all jobs", href: "/admin/jobs" },
     { label: "Users", description: "View all users and manage roles", href: "/admin/users" },
