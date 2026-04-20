@@ -24,7 +24,8 @@ body {
 .text-highlight {
   background-color: var(--highlight);
   color: white;
-  padding: 0.05em 0.2em;
+  padding: 0.05em 0.35em;
+  margin: 0 0.05em;
   border-radius: 0.15em;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
