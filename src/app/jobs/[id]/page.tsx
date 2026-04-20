@@ -85,6 +85,15 @@ export default async function JobDetailPage({
             <section className="mb-8">
               <h2 className="text-xl font-bold text-slate-900 mb-4">Job Description</h2>
               <div className="text-slate-600 leading-relaxed whitespace-pre-wrap">{job.description}</div>
+              {job.source === "adzuna" && (
+                <p className="mt-4 text-sm text-slate-400">
+                  This is a summary sourced from{" "}
+                  <a href="https://www.adzuna.com.au" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">
+                    Adzuna
+                  </a>
+                  . The full description, requirements, and application form are available on the next page.
+                </p>
+              )}
             </section>
 
             {job.requirements && (
@@ -101,7 +110,7 @@ export default async function JobDetailPage({
                 rel="noopener noreferrer"
                 className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold hover:from-violet-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
               >
-                Apply on Company Site
+                {job.source === "adzuna" ? "View full listing & apply" : "Apply on company site"}
               </a>
             )}
           </div>
