@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/session";
 import { sql, ensureInitialized } from "@/lib/db";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import type { ContentPlanItem } from "@/lib/content-plan";
 
 export const maxDuration = 120;
@@ -231,9 +231,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "ANTHROPIC_API_KEY not configured. Add it to your Vercel environment variables." }, { status: 500 });
+    return NextResponse.json({ error: "GOOGLE_AI_API_KEY not configured. Add it to your Vercel environment variables." }, { status: 500 });
   }
 
   const body = await request.json();
@@ -263,21 +263,22 @@ export async function POST(request: NextRequest) {
   let fullText: string;
   try {
     const brief = await buildBrief(article);
-    const client = new Anthropic({ apiKey });
+    const ai = new GoogleGenAI({ apiKey });
 
-    const message = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 8000,
-      temperature: 0.7,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: brief }],
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: brief,
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        maxOutputTokens: 8000,
+        temperature: 0.7,
+      },
     });
 
-    const textContent = message.content.find((c) => c.type === "text");
-    if (!textContent || textContent.type !== "text") {
+    fullText = response.text ?? "";
+    if (!fullText) {
       throw new Error("No text content in AI response");
     }
-    fullText = textContent.text;
   } catch (err) {
     await sql`UPDATE content_plan SET status = ${previousStatus}, updated_at = NOW() WHERE id = ${articleId}`;
     return NextResponse.json({
