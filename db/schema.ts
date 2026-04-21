@@ -86,6 +86,8 @@ export async function initSchema(): Promise<void> {
       excerpt TEXT NOT NULL,
       author TEXT NOT NULL,
       cover_image TEXT,
+      primary_keyword TEXT,
+      secondary_keywords TEXT,
       published_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
@@ -167,6 +169,10 @@ export async function initSchema(): Promise<void> {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+  // Migrate existing blog_posts tables that predate keyword columns
+  await sql`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS primary_keyword TEXT`.catch(() => {});
+  await sql`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS secondary_keywords TEXT`.catch(() => {});
+
   await sql`CREATE INDEX IF NOT EXISTS idx_content_plan_status ON content_plan(status)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_content_plan_content_type ON content_plan(content_type)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_content_plan_target_role ON content_plan(target_role)`;

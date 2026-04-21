@@ -16,9 +16,15 @@ export async function generateMetadata({
   const post = await getBlogPostBySlug(slug);
   if (!post) return { title: "Post Not Found" };
 
+  const keywordList = [
+    post.primary_keyword,
+    ...(post.secondary_keywords ? post.secondary_keywords.split(",").map((k) => k.trim()) : []),
+  ].filter(Boolean) as string[];
+
   return {
     title: post.title,
     description: post.excerpt,
+    keywords: keywordList.length ? keywordList : undefined,
     openGraph: {
       title: post.title,
       description: post.excerpt,

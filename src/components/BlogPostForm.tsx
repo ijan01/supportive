@@ -13,6 +13,8 @@ interface BlogPostFormProps {
     excerpt: string;
     author: string;
     published: boolean;
+    primary_keyword?: string | null;
+    secondary_keywords?: string | null;
   };
 }
 
@@ -50,6 +52,8 @@ export default function BlogPostForm({ mode, initialData }: BlogPostFormProps) {
   const [content, setContent] = useState(initialData?.content || "");
   const [excerpt, setExcerpt] = useState(initialData?.excerpt || "");
   const [author, setAuthor] = useState(initialData?.author || "");
+  const [primaryKeyword, setPrimaryKeyword] = useState(initialData?.primary_keyword || "");
+  const [secondaryKeywords, setSecondaryKeywords] = useState(initialData?.secondary_keywords || "");
   const [published, setPublished] = useState(initialData?.published ?? false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -109,6 +113,8 @@ export default function BlogPostForm({ mode, initialData }: BlogPostFormProps) {
       excerpt,
       author,
       published,
+      primary_keyword: primaryKeyword || null,
+      secondary_keywords: secondaryKeywords || null,
     };
 
     const res = await fetch("/api/admin/blog", {
@@ -213,6 +219,35 @@ export default function BlogPostForm({ mode, initialData }: BlogPostFormProps) {
             <ContentPreview content={content} />
           </div>
         )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Primary keyword
+            <span className="ml-1 text-xs font-normal text-slate-400">(target SEO keyword)</span>
+          </label>
+          <input
+            type="text"
+            value={primaryKeyword}
+            onChange={(e) => setPrimaryKeyword(e.target.value)}
+            placeholder="e.g. how to become a psychologist"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Secondary keywords
+            <span className="ml-1 text-xs font-normal text-slate-400">(comma-separated)</span>
+          </label>
+          <input
+            type="text"
+            value={secondaryKeywords}
+            onChange={(e) => setSecondaryKeywords(e.target.value)}
+            placeholder="e.g. AHPRA registration, psychology degree"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+          />
+        </div>
       </div>
 
       <div>

@@ -137,6 +137,8 @@ export interface BlogPost {
   excerpt: string;
   author: string;
   cover_image: string | null;
+  primary_keyword: string | null;
+  secondary_keywords: string | null;
   published_at: string | null;
   created_at: string;
 }

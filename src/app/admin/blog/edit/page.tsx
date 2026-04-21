@@ -41,6 +41,8 @@ export default async function EditBlogPostPage({
             excerpt: post.excerpt,
             author: post.author,
             published: !!post.published_at,
+            primary_keyword: post.primary_keyword,
+            secondary_keywords: post.secondary_keywords,
           }}
         />
       </div>

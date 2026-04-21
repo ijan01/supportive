@@ -312,6 +312,9 @@ export async function POST(request: NextRequest) {
   const title = metadata.title || article.title;
   const excerpt = metadata.excerpt || article.target_keyword || "";
 
+  const primaryKeyword = article.target_keyword || null;
+  const secondaryKeywords = metadata.secondary_keywords || article.secondary_keywords || null;
+
   const existingPost = await sql`SELECT id FROM blog_posts WHERE slug = ${slug}`;
 
   let blogPostId: number;
@@ -321,14 +324,16 @@ export async function POST(request: NextRequest) {
         title = ${title},
         content = ${articleContent},
         excerpt = ${excerpt},
-        author = ${"Supportive"}
+        author = ${"Supportive"},
+        primary_keyword = ${primaryKeyword},
+        secondary_keywords = ${secondaryKeywords}
       WHERE slug = ${slug}
     `;
     blogPostId = existingPost.rows[0].id as number;
   } else {
     const insertResult = await sql`
-      INSERT INTO blog_posts (title, slug, content, excerpt, author)
-      VALUES (${title}, ${slug}, ${articleContent}, ${excerpt}, ${"Supportive"})
+      INSERT INTO blog_posts (title, slug, content, excerpt, author, primary_keyword, secondary_keywords)
+      VALUES (${title}, ${slug}, ${articleContent}, ${excerpt}, ${"Supportive"}, ${primaryKeyword}, ${secondaryKeywords})
       RETURNING id
     `;
     blogPostId = insertResult.rows[0].id as number;

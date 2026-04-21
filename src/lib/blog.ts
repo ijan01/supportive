@@ -82,12 +82,15 @@ export async function createBlogPost(post: {
   excerpt: string;
   author: string;
   published: boolean;
+  primary_keyword?: string | null;
+  secondary_keywords?: string | null;
 }): Promise<BlogPost> {
   await ensureInitialized();
   const publishedAt = post.published ? new Date().toISOString() : null;
   const result = await sql`
-    INSERT INTO blog_posts (title, slug, content, excerpt, author, published_at)
-    VALUES (${post.title}, ${post.slug}, ${post.content}, ${post.excerpt}, ${post.author}, ${publishedAt})
+    INSERT INTO blog_posts (title, slug, content, excerpt, author, primary_keyword, secondary_keywords, published_at)
+    VALUES (${post.title}, ${post.slug}, ${post.content}, ${post.excerpt}, ${post.author},
+            ${post.primary_keyword || null}, ${post.secondary_keywords || null}, ${publishedAt})
     RETURNING *
   `;
   return result.rows[0] as BlogPost;
@@ -100,6 +103,8 @@ export async function updateBlogPost(id: number, post: {
   excerpt: string;
   author: string;
   published: boolean;
+  primary_keyword?: string | null;
+  secondary_keywords?: string | null;
 }): Promise<BlogPost> {
   await ensureInitialized();
   const existing = await getBlogPostById(id);
@@ -114,6 +119,8 @@ export async function updateBlogPost(id: number, post: {
       content = ${post.content},
       excerpt = ${post.excerpt},
       author = ${post.author},
+      primary_keyword = ${post.primary_keyword ?? existing?.primary_keyword ?? null},
+      secondary_keywords = ${post.secondary_keywords ?? existing?.secondary_keywords ?? null},
       published_at = ${publishedAt}
     WHERE id = ${id}
     RETURNING *
