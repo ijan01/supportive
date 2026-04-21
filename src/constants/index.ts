@@ -51,6 +51,7 @@ export interface Location {
 }
 
 export const AU_LOCATIONS: Location[] = [
+  // Capital cities
   { name: "Sydney, NSW", slug: "sydney-nsw", state: "NSW" },
   { name: "Melbourne, VIC", slug: "melbourne-vic", state: "VIC" },
   { name: "Brisbane, QLD", slug: "brisbane-qld", state: "QLD" },
@@ -59,10 +60,47 @@ export const AU_LOCATIONS: Location[] = [
   { name: "Canberra, ACT", slug: "canberra-act", state: "ACT" },
   { name: "Hobart, TAS", slug: "hobart-tas", state: "TAS" },
   { name: "Darwin, NT", slug: "darwin-nt", state: "NT" },
+  // NSW regional
   { name: "Newcastle, NSW", slug: "newcastle-nsw", state: "NSW" },
   { name: "Wollongong, NSW", slug: "wollongong-nsw", state: "NSW" },
-  { name: "Gold Coast, QLD", slug: "gold-coast-qld", state: "QLD" },
+  { name: "Central Coast, NSW", slug: "central-coast-nsw", state: "NSW" },
+  { name: "Albury, NSW", slug: "albury-nsw", state: "NSW" },
+  { name: "Wagga Wagga, NSW", slug: "wagga-wagga-nsw", state: "NSW" },
+  { name: "Tamworth, NSW", slug: "tamworth-nsw", state: "NSW" },
+  { name: "Port Macquarie, NSW", slug: "port-macquarie-nsw", state: "NSW" },
+  { name: "Coffs Harbour, NSW", slug: "coffs-harbour-nsw", state: "NSW" },
+  { name: "Lismore, NSW", slug: "lismore-nsw", state: "NSW" },
+  { name: "Dubbo, NSW", slug: "dubbo-nsw", state: "NSW" },
+  { name: "Orange, NSW", slug: "orange-nsw", state: "NSW" },
+  { name: "Bathurst, NSW", slug: "bathurst-nsw", state: "NSW" },
+  { name: "Goulburn, NSW", slug: "goulburn-nsw", state: "NSW" },
+  // VIC regional
   { name: "Geelong, VIC", slug: "geelong-vic", state: "VIC" },
+  { name: "Ballarat, VIC", slug: "ballarat-vic", state: "VIC" },
+  { name: "Bendigo, VIC", slug: "bendigo-vic", state: "VIC" },
+  { name: "Shepparton, VIC", slug: "shepparton-vic", state: "VIC" },
+  { name: "Warrnambool, VIC", slug: "warrnambool-vic", state: "VIC" },
+  { name: "Mildura, VIC", slug: "mildura-vic", state: "VIC" },
+  // QLD regional
+  { name: "Gold Coast, QLD", slug: "gold-coast-qld", state: "QLD" },
+  { name: "Sunshine Coast, QLD", slug: "sunshine-coast-qld", state: "QLD" },
+  { name: "Townsville, QLD", slug: "townsville-qld", state: "QLD" },
+  { name: "Cairns, QLD", slug: "cairns-qld", state: "QLD" },
+  { name: "Toowoomba, QLD", slug: "toowoomba-qld", state: "QLD" },
+  { name: "Rockhampton, QLD", slug: "rockhampton-qld", state: "QLD" },
+  { name: "Bundaberg, QLD", slug: "bundaberg-qld", state: "QLD" },
+  { name: "Mackay, QLD", slug: "mackay-qld", state: "QLD" },
+  // SA regional
+  { name: "Mount Gambier, SA", slug: "mount-gambier-sa", state: "SA" },
+  // WA regional
+  { name: "Bunbury, WA", slug: "bunbury-wa", state: "WA" },
+  { name: "Geraldton, WA", slug: "geraldton-wa", state: "WA" },
+  { name: "Kalgoorlie, WA", slug: "kalgoorlie-wa", state: "WA" },
+  // TAS regional
+  { name: "Launceston, TAS", slug: "launceston-tas", state: "TAS" },
+  // NT regional
+  { name: "Alice Springs, NT", slug: "alice-springs-nt", state: "NT" },
+  // Work arrangements
   { name: "Remote (Australia)", slug: "remote-australia", state: null },
   { name: "Hybrid", slug: "hybrid", state: null },
 ];
