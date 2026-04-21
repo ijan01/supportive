@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/session";
 import { createBlogPost, updateBlogPost, deleteBlogPost } from "@/lib/blog";
+import { sql, ensureInitialized } from "@/lib/db";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
+
+async function syncContentPlanPublished(slug: string, published: boolean) {
+  await ensureInitialized();
+  if (published) {
+    await sql`
+      UPDATE content_plan SET
+        status = 'Published',
+        slug = ${slug},
+        published_url = ${SITE_URL + "/blog/" + slug},
+        published_at = COALESCE(published_at, NOW()),
+        updated_at = NOW()
+      WHERE slug = ${slug}
+        AND status != 'Published'
+    `;
+  }
+}
 
 export async function POST(request: NextRequest) {
   const session = await getSessionFromRequest(request);
@@ -13,11 +32,13 @@ export async function POST(request: NextRequest) {
 
   if (action === "create") {
     const post = await createBlogPost(body);
+    await syncContentPlanPublished(post.slug, body.published);
     return NextResponse.json({ ok: true, post });
   }
 
   if (action === "update") {
     const post = await updateBlogPost(body.id, body);
+    await syncContentPlanPublished(post.slug, body.published);
     return NextResponse.json({ ok: true, post });
   }
 
