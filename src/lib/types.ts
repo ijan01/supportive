@@ -39,8 +39,17 @@ export interface Employer {
   why_work_with_us: string | null;
   organisation_type: OrganisationType | null;
   benefits: string[];
+  featured: boolean;
+  featured_until: string | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  directory_visible: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface EmployerWithJobCount extends Employer {
+  active_job_count: number;
 }
 
 export interface Job {

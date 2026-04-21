@@ -30,6 +30,14 @@ export async function GET(request: NextRequest) {
       AND expires_at < NOW()
   `;
 
+  // 2b. Expire featured employer subscriptions past their featured_until
+  const featuredExpired = await sql`
+    UPDATE employers SET featured = FALSE, updated_at = NOW()
+    WHERE featured = TRUE
+      AND featured_until IS NOT NULL
+      AND featured_until < NOW()
+  `;
+
   // 3. Clear boost flags on jobs whose boost expired
   await sql`
     UPDATE jobs SET is_boosted = FALSE, boosted_until = NULL, updated_at = NOW()
@@ -85,12 +93,13 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  console.log(`[cron/expire-jobs] expired ${expiredResult.rowCount} jobs, ${boostExpired.rowCount} boosts, sent ${emailsSent} warning emails`);
+  console.log(`[cron/expire-jobs] expired ${expiredResult.rowCount} jobs, ${boostExpired.rowCount} boosts, ${featuredExpired.rowCount} featured, sent ${emailsSent} warning emails`);
 
   return NextResponse.json({
     ok: true,
     expired: expiredResult.rowCount,
     boostsExpired: boostExpired.rowCount,
+    featuredExpired: featuredExpired.rowCount,
     warningEmailsSent: emailsSent,
   });
 }

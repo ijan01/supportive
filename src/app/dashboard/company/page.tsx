@@ -9,6 +9,7 @@ import { JOB_TYPE_COLORS } from "@/constants";
 import DeleteJobButton from "./DeleteJobButton";
 import SuccessToast from "./SuccessToast";
 import DashboardActions from "./DashboardActions";
+import { FeaturedSubscribeButton, FeaturedManageButton } from "./FeaturedButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -71,6 +72,36 @@ export default async function CompanyDashboard() {
           </p>
         </div>
       )}
+
+      {/* Featured employer banner */}
+      {employer && employer.featured && (!employer.featured_until || new Date(employer.featured_until) > new Date()) ? (
+        <div className="mb-6 p-5 rounded-xl bg-amber-50 border border-amber-200">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-amber-800">&#11088; You are a Featured Employer</p>
+              {employer.featured_until && (
+                <p className="text-xs text-amber-600 mt-0.5">Renews {new Date(employer.featured_until).toLocaleDateString("en-AU")}</p>
+              )}
+            </div>
+            <FeaturedManageButton />
+          </div>
+        </div>
+      ) : employer ? (
+        <div className="mb-6 p-5 rounded-xl bg-violet-50 border border-violet-200">
+          <h3 className="text-sm font-semibold text-violet-900 mb-1">Get featured in the employer directory</h3>
+          <p className="text-xs text-violet-700 mb-3">Featured employers appear at the top of directory results, stay visible even between hiring cycles, and get an enhanced profile card.</p>
+          <ul className="text-xs text-violet-700 space-y-1 mb-3">
+            <li>&#10003; Featured placement in the employer directory</li>
+            <li>&#10003; Listed even when you have no active roles</li>
+            <li>&#10003; &quot;Featured Employer&quot; badge on your profile and all listings</li>
+            <li>&#10003; Cancel anytime</li>
+          </ul>
+          <div className="flex flex-wrap gap-2">
+            <FeaturedSubscribeButton plan="monthly" />
+            <FeaturedSubscribeButton plan="annual" />
+          </div>
+        </div>
+      ) : null}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

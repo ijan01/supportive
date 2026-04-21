@@ -112,6 +112,28 @@ export async function sendApplicationConfirmationEmail(
   });
 }
 
+export async function sendFeaturedCancellationEmail(
+  email: string, userName: string, orgName: string
+): Promise<void> {
+  if (!resend) { console.warn("[email] RESEND_API_KEY not set — skipping cancellation email"); return; }
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
+  await resend.emails.send({
+    from: FROM_ADDRESS, to: email,
+    subject: "Your Featured Employer subscription has been cancelled",
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b;">
+        <div style="padding: 24px 0; border-bottom: 1px solid #e2e8f0;"><strong style="color: #7c3aed; font-size: 18px;">Supportive</strong></div>
+        <div style="padding: 24px 0;">
+          <p>Hi ${userName},</p>
+          <p>Your Featured Employer subscription for <strong>${orgName}</strong> has ended. Your employer profile will now appear in standard position in the directory.</p>
+          <p>You can resubscribe at any time from your dashboard.</p>
+          <p><a href="${siteUrl}/dashboard/company" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">Go to dashboard</a></p>
+        </div>
+      </div>
+    `.trim(),
+  });
+}
+
 export async function sendJobAlertEmail(options: {
   to: string;
   userName: string;

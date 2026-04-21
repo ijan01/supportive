@@ -204,6 +204,14 @@ async function addEmployerTables(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_employers_user_id ON employers(user_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_employers_slug ON employers(slug)`;
 
+  // Featured employer / directory columns (migration for existing DBs)
+  await sql`ALTER TABLE employers ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE`.catch(() => {});
+  await sql`ALTER TABLE employers ADD COLUMN IF NOT EXISTS featured_until TIMESTAMPTZ`.catch(() => {});
+  await sql`ALTER TABLE employers ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT`.catch(() => {});
+  await sql`ALTER TABLE employers ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT`.catch(() => {});
+  await sql`ALTER TABLE employers ADD COLUMN IF NOT EXISTS directory_visible BOOLEAN NOT NULL DEFAULT TRUE`.catch(() => {});
+  await sql`CREATE INDEX IF NOT EXISTS idx_employers_featured ON employers(featured)`.catch(() => {});
+
   // Boost system
   await sql`
     CREATE TABLE IF NOT EXISTS boosts (

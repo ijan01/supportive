@@ -2,15 +2,18 @@ import Link from "next/link";
 import Hero from "@/components/Hero";
 import JobCard from "@/components/JobCard";
 import { getFeaturedJobs, getJobCount } from "@/lib/jobs";
+import { getFeaturedEmployers } from "@/lib/employers";
 import { getBlogPosts } from "@/lib/blog";
+import { ORGANISATION_TYPES, EMPLOYER_BENEFITS, BENEFITS_PRIORITY } from "@/constants";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [featuredJobs, blogPostsAll, jobCount] = await Promise.all([
+  const [featuredJobs, blogPostsAll, jobCount, featuredEmployers] = await Promise.all([
     getFeaturedJobs(6),
     getBlogPosts(),
     getJobCount().catch(() => 0),
+    getFeaturedEmployers(8).catch(() => []),
   ]);
   const blogPosts = blogPostsAll.slice(0, 3);
 
@@ -141,6 +144,60 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Featured employers */}
+      {featuredEmployers.length > 0 && (
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
+              <div>
+                <span className="inline-block px-4 py-1.5 rounded-full border border-violet-200 bg-lavender text-violet-600 text-sm font-medium mb-3">
+                  Featured employers
+                </span>
+                <h2 className="text-3xl font-extrabold text-slate-900">Explore employers</h2>
+              </div>
+              <Link href="/employers" className="px-6 py-2.5 rounded-full border border-violet-200 text-violet-600 font-medium hover:bg-violet-50 transition-all text-sm shrink-0">
+                Browse all employers &rarr;
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {featuredEmployers.map((e) => {
+                const orgType = ORGANISATION_TYPES.find((t) => t.value === e.organisation_type);
+                const topBenefits = BENEFITS_PRIORITY.filter((s) => e.benefits.includes(s)).slice(0, 2).map((s) => EMPLOYER_BENEFITS.find((b) => b.slug === s)).filter(Boolean);
+                return (
+                  <Link key={e.id} href={`/employers/${e.slug}`} className="group block">
+                    <div className="bg-white rounded-2xl border border-slate-200 p-5 hover:border-violet-300 hover:shadow-lg transition-all h-full">
+                      <div className="flex items-center gap-3 mb-3">
+                        {e.logo_url ? (
+                          <img src={e.logo_url} alt="" className="w-10 h-10 rounded-full object-cover border border-slate-100 shrink-0" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-sm shrink-0">{e.name.charAt(0)}</div>
+                        )}
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-slate-900 group-hover:text-violet-600 transition-colors truncate text-sm">{e.name}</h3>
+                          {orgType && orgType.value !== "other" && (
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold ${orgType.color}`}>{orgType.label}</span>
+                          )}
+                        </div>
+                      </div>
+                      {e.active_job_count > 0 && (
+                        <p className="text-xs font-medium text-emerald-600 mb-2">{e.active_job_count} active role{e.active_job_count !== 1 ? "s" : ""}</p>
+                      )}
+                      {topBenefits.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {topBenefits.map((b) => (
+                            <span key={b!.slug} className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700">{b!.label}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Employer strip */}
       <section className="py-20 bg-white">

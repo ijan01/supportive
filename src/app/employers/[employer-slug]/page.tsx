@@ -4,15 +4,14 @@ import { getJobs, getJobCount } from "@/lib/jobs";
 import { getEmployerBySlug } from "@/lib/employers";
 import { ORGANISATION_TYPES, EMPLOYER_BENEFITS } from "@/constants";
 import JobCard from "@/components/JobCard";
+import JsonLd from "@/components/JsonLd";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { JobWithEmployer } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 function formatEmployerName(slug: string): string {
-  return slug
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+  return slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
 
 function getUniqueValues(jobs: JobWithEmployer[], key: keyof JobWithEmployer): string[] {
@@ -27,9 +26,20 @@ export async function generateMetadata({
   const p = await params;
   const employer = await getEmployerBySlug(p["employer-slug"]);
   const name = employer?.name || formatEmployerName(p["employer-slug"]);
+  const orgLabel = employer?.organisation_type
+    ? ORGANISATION_TYPES.find((t) => t.value === employer.organisation_type)?.label
+    : null;
+
   return {
-    title: `${name} — mental health jobs`,
-    description: `Browse open mental health and supportive services roles at ${name} on Supportive.`,
+    title: `${name} Jobs and Careers | Supportive`,
+    description: employer?.description
+      ? employer.description.slice(0, 155)
+      : `${name}${orgLabel ? ` is a ${orgLabel.toLowerCase()}` : ""} hiring mental health professionals. Browse open roles on Supportive.`,
+    openGraph: {
+      title: `${name} Jobs and Careers`,
+      description: `Browse open mental health roles at ${name} on Supportive.`,
+      type: "website",
+    },
     alternates: { canonical: `/employers/${p["employer-slug"]}` },
   };
 }
@@ -55,14 +65,29 @@ export default async function EmployerProfilePage({
   const benefitLabels = employer
     ? employer.benefits.map((slug) => EMPLOYER_BENEFITS.find((b) => b.slug === slug)).filter(Boolean)
     : [];
+  const isFeatured = employer?.featured && (!employer.featured_until || new Date(employer.featured_until) > new Date());
+
+  const jsonLd = employer ? {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: employer.name,
+    url: employer.website || undefined,
+    logo: employer.logo_url || undefined,
+    description: employer.description || undefined,
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "AU",
+    },
+  } : null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-2 text-sm text-slate-400">
-        <Link href="/employers" className="hover:text-violet-600 transition-colors">Employers</Link>
-        <span className="mx-2">&rsaquo;</span>
-        <span>{name}</span>
-      </div>
+      {jsonLd && <JsonLd data={jsonLd} />}
+
+      <Breadcrumbs items={[
+        { label: "Employers", href: "/employers" },
+        { label: name },
+      ]} />
 
       {/* Employer header */}
       <div className="flex items-start gap-5 mb-8">
@@ -74,8 +99,11 @@ export default async function EmployerProfilePage({
           </div>
         )}
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">{name}</h1>
+            {isFeatured && (
+              <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-100 text-amber-700">&#11088; Featured Employer</span>
+            )}
             {orgType && orgType.value !== "other" && (
               <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${orgType.color}`}>{orgType.label}</span>
             )}
@@ -98,6 +126,14 @@ export default async function EmployerProfilePage({
         </div>
       )}
 
+      {/* Why work with us */}
+      {employer?.why_work_with_us && (
+        <div className="mb-8 bg-white rounded-2xl border border-slate-200 p-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-3">Why work with us</h2>
+          <p className="text-slate-600 whitespace-pre-wrap leading-relaxed text-sm">{employer.why_work_with_us}</p>
+        </div>
+      )}
+
       {/* Benefits */}
       {benefitLabels.length > 0 && (
         <div className="mb-8">
@@ -110,14 +146,6 @@ export default async function EmployerProfilePage({
               </span>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Why work with us */}
-      {employer?.why_work_with_us && (
-        <div className="mb-10 bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-3">Why work with us</h2>
-          <p className="text-slate-600 whitespace-pre-wrap leading-relaxed text-sm">{employer.why_work_with_us}</p>
         </div>
       )}
 
@@ -151,8 +179,9 @@ export default async function EmployerProfilePage({
         </div>
       )}
 
+      {/* Current openings */}
       <h2 className="text-xl font-bold text-slate-900 mb-4">
-        {jobs.length > 0 ? `Open roles at ${name}` : "No open roles"}
+        {jobs.length > 0 ? `Current openings at ${name}` : "No open roles"}
       </h2>
 
       {jobs.length > 0 ? (
@@ -161,7 +190,7 @@ export default async function EmployerProfilePage({
         </div>
       ) : (
         <div className="bg-lavender border border-violet-100 rounded-2xl p-8 mb-8 text-center">
-          <p className="text-slate-700 font-medium mb-2">No open roles at {name} right now</p>
+          <p className="text-slate-700 font-medium mb-2">No current openings at {name}</p>
           <p className="text-slate-500 text-sm mb-4">New roles are added daily. Browse all current roles in the meantime.</p>
           <Link href="/jobs" className="inline-block px-6 py-2.5 rounded-full bg-violet-600 text-white font-medium hover:bg-violet-700 transition-all text-sm">Browse all roles</Link>
         </div>

@@ -1,28 +1,25 @@
 import { sql, ensureInitialized } from "./db";
-import { Employer } from "./types";
+import { Employer, EmployerWithJobCount } from "./types";
 
 export async function getEmployerByUserId(userId: number): Promise<Employer | undefined> {
   await ensureInitialized();
   const result = await sql`SELECT * FROM employers WHERE user_id = ${userId}`;
-  const row = result.rows[0] as (Omit<Employer, "benefits"> & { benefits: string | string[] }) | undefined;
-  if (!row) return undefined;
-  return { ...row, benefits: parseBenefits(row.benefits) };
+  if (!result.rows[0]) return undefined;
+  return parseEmployerRow(result.rows[0] as Record<string, unknown>);
 }
 
 export async function getEmployerBySlug(slug: string): Promise<Employer | undefined> {
   await ensureInitialized();
   const result = await sql`SELECT * FROM employers WHERE slug = ${slug}`;
-  const row = result.rows[0] as (Omit<Employer, "benefits"> & { benefits: string | string[] }) | undefined;
-  if (!row) return undefined;
-  return { ...row, benefits: parseBenefits(row.benefits) };
+  if (!result.rows[0]) return undefined;
+  return parseEmployerRow(result.rows[0] as Record<string, unknown>);
 }
 
 export async function getEmployerById(id: number): Promise<Employer | undefined> {
   await ensureInitialized();
   const result = await sql`SELECT * FROM employers WHERE id = ${id}`;
-  const row = result.rows[0] as (Omit<Employer, "benefits"> & { benefits: string | string[] }) | undefined;
-  if (!row) return undefined;
-  return { ...row, benefits: parseBenefits(row.benefits) };
+  if (!result.rows[0]) return undefined;
+  return parseEmployerRow(result.rows[0] as Record<string, unknown>);
 }
 
 export async function upsertEmployer(
@@ -88,10 +85,91 @@ export async function updateEmployerLogo(userId: number, logoUrl: string): Promi
 export async function getAllEmployers(): Promise<Employer[]> {
   await ensureInitialized();
   const result = await sql`SELECT * FROM employers ORDER BY name ASC`;
+  return result.rows.map(parseEmployerRow);
+}
+
+export async function getDirectoryEmployers(): Promise<EmployerWithJobCount[]> {
+  await ensureInitialized();
+  const result = await sql`
+    SELECT e.*,
+      COALESCE(j.cnt, 0)::integer AS active_job_count
+    FROM employers e
+    LEFT JOIN (
+      SELECT employer_id, COUNT(*)::integer AS cnt FROM jobs
+      WHERE status = 'active' GROUP BY employer_id
+    ) j ON j.employer_id = e.id
+    WHERE e.directory_visible = TRUE
+    ORDER BY
+      (e.featured = TRUE AND (e.featured_until IS NULL OR e.featured_until > NOW())) DESC,
+      COALESCE(j.cnt, 0) DESC,
+      e.name ASC
+  `;
   return result.rows.map((row) => {
-    const r = row as Omit<Employer, "benefits"> & { benefits: string | string[] };
-    return { ...r, benefits: parseBenefits(r.benefits) };
+    const e = parseEmployerRow(row);
+    return { ...e, active_job_count: (row as Record<string, unknown>).active_job_count as number };
   });
+}
+
+export async function getFeaturedEmployers(limit = 8): Promise<EmployerWithJobCount[]> {
+  await ensureInitialized();
+  const result = await sql`
+    SELECT e.*,
+      COALESCE(j.cnt, 0)::integer AS active_job_count
+    FROM employers e
+    LEFT JOIN (
+      SELECT employer_id, COUNT(*)::integer AS cnt FROM jobs
+      WHERE status = 'active' GROUP BY employer_id
+    ) j ON j.employer_id = e.id
+    WHERE e.featured = TRUE
+      AND e.directory_visible = TRUE
+      AND (e.featured_until IS NULL OR e.featured_until > NOW())
+    ORDER BY COALESCE(j.cnt, 0) DESC, e.name ASC
+    LIMIT ${limit}
+  `;
+  return result.rows.map((row) => {
+    const e = parseEmployerRow(row);
+    return { ...e, active_job_count: (row as Record<string, unknown>).active_job_count as number };
+  });
+}
+
+export async function getAllEmployersAdmin(): Promise<EmployerWithJobCount[]> {
+  await ensureInitialized();
+  const result = await sql`
+    SELECT e.*,
+      COALESCE(j.cnt, 0)::integer AS active_job_count
+    FROM employers e
+    LEFT JOIN (
+      SELECT employer_id, COUNT(*)::integer AS cnt FROM jobs
+      WHERE status = 'active' GROUP BY employer_id
+    ) j ON j.employer_id = e.id
+    ORDER BY e.name ASC
+  `;
+  return result.rows.map((row) => {
+    const e = parseEmployerRow(row);
+    return { ...e, active_job_count: (row as Record<string, unknown>).active_job_count as number };
+  });
+}
+
+export async function toggleFeatured(employerId: number, featured: boolean, days?: number): Promise<void> {
+  await ensureInitialized();
+  if (featured && days) {
+    await sql`
+      UPDATE employers SET
+        featured = TRUE,
+        featured_until = NOW() + (${days} || ' days')::interval,
+        updated_at = NOW()
+      WHERE id = ${employerId}
+    `;
+  } else if (featured) {
+    await sql`UPDATE employers SET featured = TRUE, updated_at = NOW() WHERE id = ${employerId}`;
+  } else {
+    await sql`UPDATE employers SET featured = FALSE, featured_until = NULL, updated_at = NOW() WHERE id = ${employerId}`;
+  }
+}
+
+function parseEmployerRow(row: Record<string, unknown>): Employer {
+  const r = row as Omit<Employer, "benefits"> & { benefits: string | string[] };
+  return { ...r, benefits: parseBenefits(r.benefits) };
 }
 
 function parseBenefits(raw: string | string[] | null | undefined): string[] {
