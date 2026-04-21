@@ -25,6 +25,44 @@ export async function getAllBlogPostsAdmin(): Promise<BlogPost[]> {
   return result.rows as BlogPost[];
 }
 
+export interface BlogPostAdminRow extends BlogPost {
+  content_type: string | null;
+  target_keyword: string | null;
+  target_role: string | null;
+  article_number: number | null;
+  cp_status: string | null;
+}
+
+export async function getBlogPostsAdminPaginated(
+  page: number,
+  perPage: number
+): Promise<{ posts: BlogPostAdminRow[]; total: number }> {
+  await ensureInitialized();
+  const offset = (page - 1) * perPage;
+
+  const [rowsResult, countResult] = await Promise.all([
+    sql`
+      SELECT
+        bp.*,
+        cp.content_type,
+        cp.target_keyword,
+        cp.target_role,
+        cp.article_number,
+        cp.status AS cp_status
+      FROM blog_posts bp
+      LEFT JOIN content_plan cp ON cp.slug = bp.slug
+      ORDER BY bp.created_at DESC
+      LIMIT ${perPage} OFFSET ${offset}
+    `,
+    sql`SELECT COUNT(*)::int AS total FROM blog_posts`,
+  ]);
+
+  return {
+    posts: rowsResult.rows as BlogPostAdminRow[],
+    total: countResult.rows[0].total as number,
+  };
+}
+
 export async function getBlogPostById(id: number): Promise<BlogPost | undefined> {
   await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts WHERE id = ${id}`;
