@@ -17,6 +17,32 @@ export type JobSource = "adzuna" | "direct" | "manual";
 export type JobStatus = "active" | "expired" | "review_queue" | "rejected";
 export type EmploymentType = "full_time" | "part_time" | "contract" | "casual" | "internship" | "volunteer";
 
+export type OrganisationType =
+  | "private-practice"
+  | "ndis-provider"
+  | "community-nfp"
+  | "government"
+  | "hospital"
+  | "education"
+  | "eap-provider"
+  | "recruitment-agency"
+  | "other";
+
+export interface Employer {
+  id: number;
+  user_id: number;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  website: string | null;
+  description: string | null;
+  why_work_with_us: string | null;
+  organisation_type: OrganisationType | null;
+  benefits: string[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Job {
   id: number;
   user_id: number | null;
@@ -50,6 +76,20 @@ export interface Job {
   valid_through: string | null;
   status: JobStatus;
   raw_payload: unknown | null;
+  // Employer features
+  employer_id: number | null;
+  is_boosted: boolean;
+  boosted_until: string | null;
+  apply_method: "external" | "internal";
+  view_count: number;
+  apply_click_count: number;
+  renewal_email_sent_at: string | null;
+}
+
+export interface JobWithEmployer extends Job {
+  employer_logo_url: string | null;
+  employer_organisation_type: OrganisationType | null;
+  employer_benefits: string[];
 }
 
 export interface JobWithApplicationCount extends Job {
@@ -78,6 +118,8 @@ export interface CreateJobInput {
   apply_url?: string;
 }
 
+export type ApplicationStatus = "pending" | "reviewed" | "rejected" | "accepted" | "shortlisted" | "contacted";
+
 export interface Application {
   id: number;
   job_id: number;
@@ -86,13 +128,31 @@ export interface Application {
   email: string;
   resume_url: string | null;
   cover_letter: string | null;
-  status: "pending" | "reviewed" | "rejected" | "accepted";
+  phone: string | null;
+  ahpra_number: string | null;
+  status: ApplicationStatus;
+  read_at: string | null;
   created_at: string;
 }
 
 export interface ApplicationWithJob extends Application {
   job_title: string;
   job_company: string;
+}
+
+export type BoostStatus = "pending" | "active" | "expired" | "cancelled";
+
+export interface Boost {
+  id: number;
+  job_id: number;
+  employer_id: number;
+  stripe_payment_intent_id: string | null;
+  stripe_session_id: string | null;
+  amount_cents: number;
+  status: BoostStatus;
+  started_at: string | null;
+  expires_at: string | null;
+  created_at: string;
 }
 
 export interface SavedJob {

@@ -136,6 +136,60 @@ export const JOB_TYPE_COLORS: Record<string, string> = {
 export const APPLICATION_STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
   reviewed: "bg-blue-100 text-blue-700",
+  shortlisted: "bg-violet-100 text-violet-700",
+  contacted: "bg-cyan-100 text-cyan-700",
   rejected: "bg-red-100 text-red-700",
   accepted: "bg-green-100 text-green-700",
 };
+
+export interface BenefitDef {
+  slug: string;
+  label: string;
+  group: "remuneration" | "professional";
+}
+
+export const EMPLOYER_BENEFITS: BenefitDef[] = [
+  // Remuneration & Leave
+  { slug: "salary-packaging", label: "Salary packaging available", group: "remuneration" },
+  { slug: "above-award-pay", label: "Above-award pay", group: "remuneration" },
+  { slug: "flexible-hybrid", label: "Flexible / hybrid working", group: "remuneration" },
+  { slug: "telehealth-option", label: "Telehealth option available", group: "remuneration" },
+  { slug: "relocation-support", label: "Relocation support", group: "remuneration" },
+  { slug: "rural-incentives", label: "Rural incentive payments", group: "remuneration" },
+  { slug: "car-travel-allowance", label: "Car / travel allowance", group: "remuneration" },
+  { slug: "above-minimum-parental", label: "Paid parental leave (above minimum)", group: "remuneration" },
+  { slug: "wellbeing-leave", label: "Wellbeing / mental health days", group: "remuneration" },
+  // Professional Support
+  { slug: "paid-pd", label: "Paid professional development", group: "professional" },
+  { slug: "paid-supervision", label: "Paid clinical supervision", group: "professional" },
+  { slug: "supervision-provided", label: "Supervision provided (for provisional registrants)", group: "professional" },
+  { slug: "ahpra-fees-covered", label: "AHPRA registration fees covered", group: "professional" },
+  { slug: "conference-attendance", label: "Paid conference attendance", group: "professional" },
+  { slug: "eap", label: "Employee assistance programme", group: "professional" },
+];
+
+export const BENEFITS_PRIORITY = [
+  "supervision-provided",
+  "paid-supervision",
+  "salary-packaging",
+  "above-award-pay",
+  "flexible-hybrid",
+];
+
+export interface OrgTypeDef {
+  value: string;
+  label: string;
+  color: string;
+}
+
+export const ORGANISATION_TYPES: OrgTypeDef[] = [
+  { value: "private-practice", label: "Private Practice", color: "bg-teal-100 text-teal-700" },
+  { value: "ndis-provider", label: "NDIS Provider", color: "bg-purple-100 text-purple-700" },
+  { value: "community-nfp", label: "Community NFP", color: "bg-green-100 text-green-700" },
+  { value: "government", label: "Government", color: "bg-blue-100 text-blue-700" },
+  { value: "hospital", label: "Hospital / Health Service", color: "bg-red-100 text-red-700" },
+  { value: "education", label: "Education", color: "bg-amber-100 text-amber-700" },
+  { value: "eap-provider", label: "EAP Provider", color: "bg-orange-100 text-orange-700" },
+  { value: "recruitment-agency", label: "Recruitment", color: "bg-slate-100 text-slate-700" },
+  { value: "other", label: "Other", color: "bg-gray-100 text-gray-600" },
+];

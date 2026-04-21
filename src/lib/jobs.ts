@@ -1,9 +1,9 @@
 import { sql, ensureInitialized } from "./db";
-import { Job, JobFilters, CreateJobInput, JobWithApplicationCount } from "./types";
+import { Job, JobFilters, CreateJobInput, JobWithApplicationCount, JobWithEmployer } from "./types";
 
 const PAGE_SIZE = 20;
 
-export async function getJobs(filters?: JobFilters): Promise<Job[]> {
+export async function getJobs(filters?: JobFilters & { benefits?: string[] }): Promise<JobWithEmployer[]> {
   await ensureInitialized();
   const search = filters?.search ? `%${filters.search}%` : null;
   const location = filters?.location || null;
@@ -11,69 +11,114 @@ export async function getJobs(filters?: JobFilters): Promise<Job[]> {
   const jobType = filters?.job_type || null;
   const limit = filters?.limit ?? PAGE_SIZE;
   const offset = ((filters?.page ?? 1) - 1) * limit;
+  const benefitsFilter = filters?.benefits && filters.benefits.length > 0 ? JSON.stringify(filters.benefits) : null;
 
   const result = await sql`
-    SELECT * FROM jobs
-    WHERE status = 'active'
-      AND (${search}::text IS NULL OR title ILIKE ${search} OR company ILIKE ${search})
-      AND (${location}::text IS NULL OR location = ${location})
-      AND (${category}::text IS NULL OR category = ${category})
-      AND (${jobType}::text IS NULL OR job_type = ${jobType})
-    ORDER BY is_featured DESC, posted_date DESC NULLS LAST, created_at DESC
+    SELECT j.*,
+      e.logo_url AS employer_logo_url,
+      e.organisation_type AS employer_organisation_type,
+      COALESCE(e.benefits, '[]'::jsonb) AS employer_benefits
+    FROM jobs j
+    LEFT JOIN employers e ON e.id = j.employer_id
+    WHERE j.status = 'active'
+      AND (${search}::text IS NULL OR j.title ILIKE ${search} OR j.company ILIKE ${search})
+      AND (${location}::text IS NULL OR j.location = ${location})
+      AND (${category}::text IS NULL OR j.category = ${category})
+      AND (${jobType}::text IS NULL OR j.job_type = ${jobType})
+      AND (${benefitsFilter}::jsonb IS NULL OR e.benefits @> ${benefitsFilter}::jsonb)
+    ORDER BY j.is_boosted DESC, j.is_featured DESC, j.posted_date DESC NULLS LAST, j.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `;
-  return result.rows as Job[];
+  return result.rows.map(parseJobWithEmployer);
 }
 
-export async function getJobCount(filters?: Omit<JobFilters, "page" | "limit">): Promise<number> {
+export async function getJobCount(filters?: Omit<JobFilters, "page" | "limit"> & { benefits?: string[] }): Promise<number> {
   await ensureInitialized();
   const search = filters?.search ? `%${filters.search}%` : null;
   const location = filters?.location || null;
   const category = filters?.category || null;
   const jobType = filters?.job_type || null;
+  const benefitsFilter = filters?.benefits && filters.benefits.length > 0 ? JSON.stringify(filters.benefits) : null;
 
   const result = await sql`
-    SELECT COUNT(*)::integer AS count FROM jobs
-    WHERE status = 'active'
-      AND (${search}::text IS NULL OR title ILIKE ${search} OR company ILIKE ${search})
-      AND (${location}::text IS NULL OR location = ${location})
-      AND (${category}::text IS NULL OR category = ${category})
-      AND (${jobType}::text IS NULL OR job_type = ${jobType})
+    SELECT COUNT(*)::integer AS count FROM jobs j
+    LEFT JOIN employers e ON e.id = j.employer_id
+    WHERE j.status = 'active'
+      AND (${search}::text IS NULL OR j.title ILIKE ${search} OR j.company ILIKE ${search})
+      AND (${location}::text IS NULL OR j.location = ${location})
+      AND (${category}::text IS NULL OR j.category = ${category})
+      AND (${jobType}::text IS NULL OR j.job_type = ${jobType})
+      AND (${benefitsFilter}::jsonb IS NULL OR e.benefits @> ${benefitsFilter}::jsonb)
   `;
   return result.rows[0].count as number;
 }
 
-export async function getJobById(id: number): Promise<Job | undefined> {
-  await ensureInitialized();
-  const result = await sql`SELECT * FROM jobs WHERE id = ${id} AND status = 'active'`;
-  return result.rows[0] as Job | undefined;
-}
-
-export async function getFeaturedJobs(limit = 6): Promise<Job[]> {
+export async function getJobById(id: number): Promise<JobWithEmployer | undefined> {
   await ensureInitialized();
   const result = await sql`
-    SELECT * FROM jobs WHERE status = 'active'
-    ORDER BY is_featured DESC, posted_date DESC NULLS LAST, created_at DESC
+    SELECT j.*,
+      e.logo_url AS employer_logo_url,
+      e.organisation_type AS employer_organisation_type,
+      COALESCE(e.benefits, '[]'::jsonb) AS employer_benefits
+    FROM jobs j
+    LEFT JOIN employers e ON e.id = j.employer_id
+    WHERE j.id = ${id} AND j.status = 'active'
+  `;
+  if (!result.rows[0]) return undefined;
+  return parseJobWithEmployer(result.rows[0]);
+}
+
+export async function getJobByIdAny(id: number): Promise<JobWithEmployer | undefined> {
+  await ensureInitialized();
+  const result = await sql`
+    SELECT j.*,
+      e.logo_url AS employer_logo_url,
+      e.organisation_type AS employer_organisation_type,
+      COALESCE(e.benefits, '[]'::jsonb) AS employer_benefits
+    FROM jobs j
+    LEFT JOIN employers e ON e.id = j.employer_id
+    WHERE j.id = ${id}
+  `;
+  if (!result.rows[0]) return undefined;
+  return parseJobWithEmployer(result.rows[0]);
+}
+
+export async function getFeaturedJobs(limit = 6): Promise<JobWithEmployer[]> {
+  await ensureInitialized();
+  const result = await sql`
+    SELECT j.*,
+      e.logo_url AS employer_logo_url,
+      e.organisation_type AS employer_organisation_type,
+      COALESCE(e.benefits, '[]'::jsonb) AS employer_benefits
+    FROM jobs j
+    LEFT JOIN employers e ON e.id = j.employer_id
+    WHERE j.status = 'active'
+    ORDER BY j.is_boosted DESC, j.is_featured DESC, j.posted_date DESC NULLS LAST, j.created_at DESC
     LIMIT ${limit}
   `;
-  return result.rows as Job[];
+  return result.rows.map(parseJobWithEmployer);
 }
 
 export async function getJobsByRoleAndLocation(
   roleName: string,
   locationName: string,
   limit = 20
-): Promise<Job[]> {
+): Promise<JobWithEmployer[]> {
   await ensureInitialized();
   const result = await sql`
-    SELECT * FROM jobs
-    WHERE status = 'active'
-      AND category = ${roleName}
-      AND location = ${locationName}
-    ORDER BY posted_date DESC NULLS LAST, created_at DESC
+    SELECT j.*,
+      e.logo_url AS employer_logo_url,
+      e.organisation_type AS employer_organisation_type,
+      COALESCE(e.benefits, '[]'::jsonb) AS employer_benefits
+    FROM jobs j
+    LEFT JOIN employers e ON e.id = j.employer_id
+    WHERE j.status = 'active'
+      AND j.category = ${roleName}
+      AND j.location = ${locationName}
+    ORDER BY j.is_boosted DESC, j.posted_date DESC NULLS LAST, j.created_at DESC
     LIMIT ${limit}
   `;
-  return result.rows as Job[];
+  return result.rows.map(parseJobWithEmployer);
 }
 
 export async function getJobsByUserId(userId: number): Promise<JobWithApplicationCount[]> {
@@ -89,13 +134,18 @@ export async function getJobsByUserId(userId: number): Promise<JobWithApplicatio
   return result.rows as JobWithApplicationCount[];
 }
 
-export async function createJob(userId: number, input: CreateJobInput): Promise<Job> {
+export async function createJob(userId: number, input: CreateJobInput & { apply_method?: string }): Promise<Job> {
   await ensureInitialized();
+  const empResult = await sql`SELECT id, slug FROM employers WHERE user_id = ${userId}`;
+  const employerId = empResult.rows[0]?.id as number | undefined ?? null;
+  const employerSlug = empResult.rows[0]?.slug as string | undefined ?? null;
+
   const result = await sql`
-    INSERT INTO jobs (user_id, title, company, location, category, job_type, salary_min, salary_max, description, requirements, apply_url, source, status, employer_name, posted_date, valid_through)
+    INSERT INTO jobs (user_id, title, company, location, category, job_type, salary_min, salary_max, description, requirements, apply_url, apply_method, source, status, employer_name, employer_slug, employer_id, posted_date, valid_through)
     VALUES (${userId}, ${input.title}, ${input.company}, ${input.location}, ${input.category}, ${input.job_type},
             ${input.salary_min || null}, ${input.salary_max || null}, ${input.description}, ${input.requirements},
-            ${input.apply_url || null}, 'manual', 'active', ${input.company}, NOW(), NOW() + INTERVAL '30 days')
+            ${input.apply_url || null}, ${input.apply_method || "external"}, 'manual', 'active', ${input.company}, ${employerSlug},
+            ${employerId}, NOW(), NOW() + INTERVAL '28 days')
     RETURNING *
   `;
   return result.rows[0] as Job;
@@ -151,4 +201,75 @@ export async function getJobCountByRoleAndLocation(
     WHERE category = ${roleName} AND location = ${locationName} AND status = 'active'
   `;
   return (result.rows[0]?.count as number) ?? 0;
+}
+
+export async function duplicateJob(jobId: number, userId: number): Promise<Job | null> {
+  await ensureInitialized();
+  const result = await sql`
+    INSERT INTO jobs (user_id, title, company, location, category, job_type, salary_min, salary_max,
+      description, requirements, apply_url, apply_method, source, status, employer_name, employer_slug,
+      employer_id, posted_date, valid_through)
+    SELECT user_id, title, company, location, category, job_type, salary_min, salary_max,
+      description, requirements, apply_url, apply_method, source, 'active', employer_name, employer_slug,
+      employer_id, NOW(), NOW() + INTERVAL '28 days'
+    FROM jobs
+    WHERE id = ${jobId} AND user_id = ${userId}
+    RETURNING *
+  `;
+  return (result.rows[0] as Job) || null;
+}
+
+export async function renewJob(jobId: number, userId: number): Promise<Job | null> {
+  await ensureInitialized();
+  const result = await sql`
+    UPDATE jobs SET
+      status = 'active',
+      valid_through = NOW() + INTERVAL '28 days',
+      renewal_email_sent_at = NULL,
+      updated_at = NOW()
+    WHERE id = ${jobId} AND user_id = ${userId}
+    RETURNING *
+  `;
+  return (result.rows[0] as Job) || null;
+}
+
+export async function trackJobEvent(jobId: number, eventType: "view" | "apply_click"): Promise<void> {
+  await ensureInitialized();
+  await sql`INSERT INTO job_events (job_id, event_type) VALUES (${jobId}, ${eventType})`;
+  if (eventType === "view") {
+    await sql`UPDATE jobs SET view_count = view_count + 1 WHERE id = ${jobId}`;
+  } else {
+    await sql`UPDATE jobs SET apply_click_count = apply_click_count + 1 WHERE id = ${jobId}`;
+  }
+}
+
+function parseJobWithEmployer(row: Record<string, unknown>): JobWithEmployer {
+  let benefits: string[] = [];
+  const raw = row.employer_benefits;
+  if (Array.isArray(raw)) benefits = raw as string[];
+  else if (typeof raw === "string") {
+    try { benefits = JSON.parse(raw); } catch { /* empty */ }
+  }
+  return {
+    ...(row as unknown as Job),
+    employer_logo_url: (row.employer_logo_url as string) ?? null,
+    employer_organisation_type: (row.employer_organisation_type as JobWithEmployer["employer_organisation_type"]) ?? null,
+    employer_benefits: benefits,
+  };
+}
+
+export async function getRecentJobsWithEmployer(limit = 10): Promise<JobWithEmployer[]> {
+  await ensureInitialized();
+  const result = await sql`
+    SELECT j.*,
+      e.logo_url AS employer_logo_url,
+      e.organisation_type AS employer_organisation_type,
+      COALESCE(e.benefits, '[]'::jsonb) AS employer_benefits
+    FROM jobs j
+    LEFT JOIN employers e ON e.id = j.employer_id
+    WHERE j.status = 'active'
+    ORDER BY j.is_boosted DESC, j.created_at DESC
+    LIMIT ${limit}
+  `;
+  return result.rows.map(parseJobWithEmployer);
 }

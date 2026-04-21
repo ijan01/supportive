@@ -118,6 +118,9 @@ export async function initSchema(): Promise<void> {
   // Migrate existing tables that predate the feed columns
   await addFeedColumns();
 
+  // Employer profiles, boost system, analytics
+  await addEmployerTables();
+
   // Indexes
   await sql`CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs(category)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_jobs_job_type ON jobs(job_type)`;
@@ -178,6 +181,92 @@ export async function initSchema(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_content_plan_target_role ON content_plan(target_role)`;
 
   initialized = true;
+}
+
+async function addEmployerTables(): Promise<void> {
+  // Employer profiles
+  await sql`
+    CREATE TABLE IF NOT EXISTS employers (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      name TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      logo_url TEXT,
+      website TEXT,
+      description TEXT,
+      why_work_with_us TEXT,
+      organisation_type TEXT,
+      benefits JSONB DEFAULT '[]'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_employers_user_id ON employers(user_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_employers_slug ON employers(slug)`;
+
+  // Boost system
+  await sql`
+    CREATE TABLE IF NOT EXISTS boosts (
+      id SERIAL PRIMARY KEY,
+      job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+      employer_id INTEGER NOT NULL REFERENCES employers(id),
+      stripe_payment_intent_id TEXT,
+      stripe_session_id TEXT,
+      amount_cents INTEGER NOT NULL DEFAULT 9900,
+      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'expired', 'cancelled')),
+      started_at TIMESTAMPTZ,
+      expires_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_boosts_job_id ON boosts(job_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_boosts_employer_id ON boosts(employer_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_boosts_status ON boosts(status)`;
+
+  // Analytics events
+  await sql`
+    CREATE TABLE IF NOT EXISTS job_events (
+      id SERIAL PRIMARY KEY,
+      job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+      event_type TEXT NOT NULL CHECK (event_type IN ('view', 'apply_click')),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_job_events_job_id ON job_events(job_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_job_events_type ON job_events(event_type)`;
+
+  // New columns on jobs
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS employer_id INTEGER REFERENCES employers(id)`.catch(() => {});
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS is_boosted BOOLEAN NOT NULL DEFAULT FALSE`.catch(() => {});
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS boosted_until TIMESTAMPTZ`.catch(() => {});
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS apply_method TEXT NOT NULL DEFAULT 'external'`.catch(() => {});
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS view_count INTEGER NOT NULL DEFAULT 0`.catch(() => {});
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS apply_click_count INTEGER NOT NULL DEFAULT 0`.catch(() => {});
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS renewal_email_sent_at TIMESTAMPTZ`.catch(() => {});
+  await sql`CREATE INDEX IF NOT EXISTS idx_jobs_employer_id ON jobs(employer_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_jobs_is_boosted ON jobs(is_boosted)`;
+
+  // New columns on applications
+  await sql`ALTER TABLE applications ADD COLUMN IF NOT EXISTS phone TEXT`.catch(() => {});
+  await sql`ALTER TABLE applications ADD COLUMN IF NOT EXISTS ahpra_number TEXT`.catch(() => {});
+  await sql`ALTER TABLE applications ADD COLUMN IF NOT EXISTS read_at TIMESTAMPTZ`.catch(() => {});
+
+  // Backfill: auto-create employer profiles for existing company users that don't have one
+  await sql`
+    INSERT INTO employers (user_id, name, slug)
+    SELECT u.id, u.company_name, LOWER(REGEXP_REPLACE(u.company_name, '[^a-zA-Z0-9]+', '-', 'g'))
+    FROM users u
+    WHERE u.role = 'company' AND u.company_name IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM employers e WHERE e.user_id = u.id)
+    ON CONFLICT (slug) DO NOTHING
+  `.catch(() => {});
+
+  // Backfill: link existing manual jobs to their employer
+  await sql`
+    UPDATE jobs SET employer_id = e.id
+    FROM employers e
+    WHERE jobs.user_id = e.user_id AND jobs.employer_id IS NULL AND jobs.source = 'manual'
+  `.catch(() => {});
 }
 
 async function addFeedColumns(): Promise<void> {
