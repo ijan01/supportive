@@ -48,6 +48,70 @@ export async function sendNewApplicationEmail(options: {
   });
 }
 
+export async function sendExpiryWarningEmail(
+  email: string, name: string, jobTitle: string, jobId: number, views: number, clicks: number
+): Promise<void> {
+  if (!resend) { console.warn("[email] RESEND_API_KEY not set — skipping expiry warning"); return; }
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
+  await resend.emails.send({
+    from: FROM_ADDRESS, to: email,
+    subject: `Your "${jobTitle}" listing expires in 7 days`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b;">
+        <div style="padding: 24px 0; border-bottom: 1px solid #e2e8f0;"><strong style="color: #7c3aed; font-size: 18px;">Supportive</strong></div>
+        <div style="padding: 24px 0;">
+          <p>Hi ${name},</p>
+          <p>Your listing <strong>${jobTitle}</strong> expires in 7 days.</p>
+          <p style="color: #64748b; font-size: 14px;">So far your listing has received <strong>${views} views</strong> and <strong>${clicks} apply clicks</strong>.</p>
+          <p><a href="${siteUrl}/dashboard/company?renew=${jobId}" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">Renew listing</a></p>
+        </div>
+      </div>
+    `.trim(),
+  });
+}
+
+export async function sendExpiryNotificationEmail(
+  email: string, name: string, jobTitle: string, jobId: number
+): Promise<void> {
+  if (!resend) { console.warn("[email] RESEND_API_KEY not set — skipping expiry notification"); return; }
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
+  await resend.emails.send({
+    from: FROM_ADDRESS, to: email,
+    subject: `Your "${jobTitle}" listing has expired`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b;">
+        <div style="padding: 24px 0; border-bottom: 1px solid #e2e8f0;"><strong style="color: #7c3aed; font-size: 18px;">Supportive</strong></div>
+        <div style="padding: 24px 0;">
+          <p>Hi ${name},</p>
+          <p>Your listing <strong>${jobTitle}</strong> has now expired.</p>
+          <p><a href="${siteUrl}/dashboard/company?renew=${jobId}" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">Reactivate this listing</a></p>
+          <p>Or <a href="${siteUrl}/dashboard/company/post-job" style="color: #7c3aed;">post a new listing</a>.</p>
+        </div>
+      </div>
+    `.trim(),
+  });
+}
+
+export async function sendApplicationConfirmationEmail(
+  email: string, applicantName: string, jobTitle: string, companyName: string
+): Promise<void> {
+  if (!resend) { console.warn("[email] RESEND_API_KEY not set — skipping application confirmation"); return; }
+  await resend.emails.send({
+    from: FROM_ADDRESS, to: email,
+    subject: `Your application for ${jobTitle} has been received`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b;">
+        <div style="padding: 24px 0; border-bottom: 1px solid #e2e8f0;"><strong style="color: #7c3aed; font-size: 18px;">Supportive</strong></div>
+        <div style="padding: 24px 0;">
+          <p>Hi ${applicantName},</p>
+          <p>Your application for <strong>${jobTitle}</strong> at <strong>${companyName}</strong> has been received. Good luck!</p>
+          <p style="color: #64748b; font-size: 13px; margin-top: 24px;">You'll hear directly from the employer if they'd like to proceed.</p>
+        </div>
+      </div>
+    `.trim(),
+  });
+}
+
 export async function sendJobAlertEmail(options: {
   to: string;
   userName: string;
