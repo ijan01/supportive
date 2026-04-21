@@ -20,6 +20,7 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
   const [salaryMax, setSalaryMax] = useState(existingJob?.salary_max?.toString() || "");
   const [description, setDescription] = useState(existingJob?.description || "");
   const [requirements, setRequirements] = useState(existingJob?.requirements || "");
+  const [applyMethod, setApplyMethod] = useState<"external" | "internal">(existingJob?.apply_method || "external");
   const [applyUrl, setApplyUrl] = useState(existingJob?.apply_url || "");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,9 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
       title, company, location, category, job_type: jobType,
       salary_min: salaryMin ? Number(salaryMin) : undefined,
       salary_max: salaryMax ? Number(salaryMax) : undefined,
-      description, requirements, apply_url: applyUrl,
+      description, requirements,
+      apply_method: applyMethod,
+      apply_url: applyMethod === "external" ? applyUrl : "",
     };
 
     try {
@@ -123,9 +126,35 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">External apply URL</label>
-        <input type="url" value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="https://..." className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" />
-        <p className="text-xs text-slate-400 mt-1">If provided, the "Apply" button links to this URL. Leave blank and candidates will apply directly through Supportive.</p>
+        <label className="block text-sm font-medium text-slate-700 mb-3">How should candidates apply?</label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setApplyMethod("external")}
+            className={`p-4 rounded-xl border-2 text-left transition-all ${applyMethod === "external" ? "border-violet-500 bg-violet-50" : "border-slate-200 hover:border-slate-300"}`}
+          >
+            <div className="font-semibold text-slate-900 text-sm mb-1">Link to your website</div>
+            <p className="text-xs text-slate-500">Candidates click &quot;Apply&quot; and go to your careers page or ATS.</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setApplyMethod("internal")}
+            className={`p-4 rounded-xl border-2 text-left transition-all ${applyMethod === "internal" ? "border-violet-500 bg-violet-50" : "border-slate-200 hover:border-slate-300"}`}
+          >
+            <div className="font-semibold text-slate-900 text-sm mb-1">Receive applications here</div>
+            <p className="text-xs text-slate-500">Candidates apply through Supportive. Applications appear in your inbox.</p>
+          </button>
+        </div>
+        {applyMethod === "external" && (
+          <div className="mt-3">
+            <input type="url" value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="https://your-careers-page.com/apply" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" />
+          </div>
+        )}
+        {applyMethod === "internal" && (
+          <p className="mt-3 text-xs text-emerald-600 bg-emerald-50 rounded-lg p-3">
+            Candidates will see an application form on the listing page. You&apos;ll receive applications in your <strong>Dashboard &rarr; Applications</strong> inbox and get an email notification for each one.
+          </p>
+        )}
       </div>
 
       <div className="flex gap-3 pt-2">

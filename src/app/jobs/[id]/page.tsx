@@ -102,7 +102,14 @@ export default async function JobDetailPage({
 
           {/* Body */}
           <div className="p-8 sm:p-10">
-            <JobDetailClient jobId={job.id} jobTitle={job.title} userRole={session?.user?.role ?? null} />
+            <JobDetailClient
+              jobId={job.id}
+              jobTitle={job.title}
+              jobCompany={job.company}
+              userRole={session?.user?.role ?? null}
+              applyMethod={job.apply_method || "external"}
+              applyUrl={job.apply_url}
+            />
 
             <section className="mb-8">
               <h2 className="text-xl font-bold text-slate-900 mb-4">Job Description</h2>
@@ -139,7 +146,7 @@ export default async function JobDetailPage({
               </section>
             )}
 
-            {job.apply_url && (
+            {job.apply_url && job.apply_method !== "internal" && (
               <a
                 href={job.apply_url}
                 target="_blank"

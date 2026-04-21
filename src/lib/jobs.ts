@@ -151,8 +151,11 @@ export async function createJob(userId: number, input: CreateJobInput & { apply_
   return result.rows[0] as Job;
 }
 
-export async function updateJob(id: number, userId: number, input: CreateJobInput): Promise<Job | null> {
+export async function updateJob(id: number, userId: number, input: CreateJobInput & { apply_method?: string }): Promise<Job | null> {
   await ensureInitialized();
+  const applyMethod = input.apply_method === "internal" ? "internal" : "external";
+  const applyUrl = applyMethod === "internal" ? null : (input.apply_url || null);
+
   const result = await sql`
     UPDATE jobs SET
       title = ${input.title},
@@ -164,7 +167,8 @@ export async function updateJob(id: number, userId: number, input: CreateJobInpu
       salary_max = ${input.salary_max || null},
       description = ${input.description},
       requirements = ${input.requirements},
-      apply_url = ${input.apply_url || null},
+      apply_url = ${applyUrl},
+      apply_method = ${applyMethod},
       employer_name = ${input.company},
       updated_at = NOW()
     WHERE id = ${id} AND user_id = ${userId}

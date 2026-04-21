@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, company, location, category, job_type, salary_min, salary_max, description, requirements, apply_url } = body;
+    const { title, company, location, category, job_type, salary_min, salary_max, description, requirements, apply_url, apply_method } = body;
 
     if (!title || !company || !location || !category || !job_type || !description || !requirements) {
       return NextResponse.json(
@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
       salary_max: salary_max ? Number(salary_max) : undefined,
       description,
       requirements,
-      apply_url,
+      apply_url: apply_method === "internal" ? undefined : apply_url,
+      apply_method: apply_method === "internal" ? "internal" : "external",
     });
 
     return NextResponse.json({ job }, { status: 201 });

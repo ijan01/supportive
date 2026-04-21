@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createApplication, getApplicationsByUserId, hasUserApplied } from "@/lib/applications";
-import { getJobById } from "@/lib/jobs";
+import { getJobById, trackJobEvent } from "@/lib/jobs";
 import { getUserById } from "@/lib/users";
 import { getSessionFromRequest } from "@/lib/session";
-import { sendNewApplicationEmail } from "@/lib/email";
+import { sendNewApplicationEmail, sendApplicationConfirmationEmail } from "@/lib/email";
 
 export async function GET(request: NextRequest) {
   const session = await getSessionFromRequest(request);
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { job_id, name, email, resume_url, cover_letter } = body;
+    const { job_id, name, email, resume_url, cover_letter, phone, ahpra_number } = body;
 
     if (!job_id || !name || !email) {
       return NextResponse.json(
@@ -50,10 +50,20 @@ export async function POST(request: NextRequest) {
       name,
       email,
       resume_url,
-      cover_letter
+      cover_letter,
+      phone,
+      ahpra_number
     );
 
-    // Notify employer (fire-and-forget — don't block the response)
+    // Track apply click event
+    trackJobEvent(job.id, "apply_click").catch(() => {});
+
+    // Send confirmation to applicant (fire-and-forget)
+    sendApplicationConfirmationEmail(email, name, job.title, job.company).catch((err) =>
+      console.error("[email] failed to send applicant confirmation:", err)
+    );
+
+    // Notify employer (fire-and-forget)
     if (job.user_id) {
       getUserById(job.user_id).then((employer) => {
         if (employer?.email) {

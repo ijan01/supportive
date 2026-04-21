@@ -7,12 +7,14 @@ export async function createApplication(
   name: string,
   email: string,
   resumeUrl?: string,
-  coverLetter?: string
+  coverLetter?: string,
+  phone?: string,
+  ahpraNumber?: string
 ): Promise<Application> {
   await ensureInitialized();
   const result = await sql`
-    INSERT INTO applications (job_id, user_id, name, email, resume_url, cover_letter)
-    VALUES (${jobId}, ${userId}, ${name}, ${email}, ${resumeUrl || null}, ${coverLetter || null})
+    INSERT INTO applications (job_id, user_id, name, email, resume_url, cover_letter, phone, ahpra_number)
+    VALUES (${jobId}, ${userId}, ${name}, ${email}, ${resumeUrl || null}, ${coverLetter || null}, ${phone || null}, ${ahpraNumber || null})
     RETURNING *
   `;
   return result.rows[0] as Application;
