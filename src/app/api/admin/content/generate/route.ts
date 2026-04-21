@@ -265,25 +265,56 @@ export async function POST(request: NextRequest) {
     const brief = await buildBrief(article);
     const ai = new GoogleGenAI({ apiKey });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: brief,
-      config: {
-        systemInstruction: SYSTEM_PROMPT,
-        maxOutputTokens: 8000,
-        temperature: 0.7,
-      },
-    });
+    // Try up to 4 times with exponential backoff, falling back to an older
+    // model variant on overload errors.
+    const attempts: Array<{ model: string; delayMs: number }> = [
+      { model: "gemini-2.5-flash", delayMs: 0 },
+      { model: "gemini-2.5-flash", delayMs: 2000 },
+      { model: "gemini-2.0-flash", delayMs: 4000 },
+      { model: "gemini-2.0-flash", delayMs: 8000 },
+    ];
 
-    fullText = response.text ?? "";
+    let lastError: unknown = null;
+    fullText = "";
+
+    for (const attempt of attempts) {
+      if (attempt.delayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, attempt.delayMs));
+      }
+      try {
+        const response = await ai.models.generateContent({
+          model: attempt.model,
+          contents: brief,
+          config: {
+            systemInstruction: SYSTEM_PROMPT,
+            maxOutputTokens: 8000,
+            temperature: 0.7,
+          },
+        });
+        fullText = response.text ?? "";
+        if (fullText) {
+          lastError = null;
+          break;
+        }
+        lastError = new Error("No text content in AI response");
+      } catch (err) {
+        lastError = err;
+        const msg = err instanceof Error ? err.message : String(err);
+        const retryable = /503|UNAVAILABLE|overloaded|high demand|429|RESOURCE_EXHAUSTED/i.test(msg);
+        if (!retryable) break;
+      }
+    }
+
     if (!fullText) {
-      throw new Error("No text content in AI response");
+      throw lastError ?? new Error("Generation failed after retries");
     }
   } catch (err) {
     await sql`UPDATE content_plan SET status = ${previousStatus}, updated_at = NOW() WHERE id = ${articleId}`;
-    return NextResponse.json({
-      error: `Generation failed: ${err instanceof Error ? err.message : String(err)}`,
-    }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    const friendly = /503|UNAVAILABLE|overloaded|high demand/i.test(msg)
+      ? "Google AI is overloaded right now. We retried 4 times and fell back to gemini-2.0-flash but demand is still too high. Please try again in a few minutes."
+      : `Generation failed: ${msg}`;
+    return NextResponse.json({ error: friendly }, { status: 503 });
   }
 
   let metadata: { title: string; slug: string; excerpt: string; secondary_keywords?: string; word_count: number } = {
