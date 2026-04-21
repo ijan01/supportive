@@ -29,10 +29,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Job not found or not yours" }, { status: 404 });
   }
   if (job.status !== "active") {
-    return NextResponse.json({ error: "Only active listings can be boosted" }, { status: 400 });
+    return NextResponse.json({ error: "Only active listings can be sponsored" }, { status: 400 });
   }
   if (job.is_boosted) {
-    return NextResponse.json({ error: "This listing is already boosted" }, { status: 400 });
+    return NextResponse.json({ error: "This listing is already sponsored" }, { status: 400 });
   }
 
   const Stripe = (await import("stripe")).default;
@@ -47,23 +47,23 @@ export async function POST(request: NextRequest) {
       {
         price_data: {
           currency: "aud",
-          unit_amount: 9900,
+          unit_amount: 7900,
           product_data: {
-            name: `Featured listing boost — 14 days`,
-            description: `Boost "${job.title}" to the top of search results for 14 days.`,
+            name: `Sponsored listing — 14 days`,
+            description: `Sponsor "${job.title}" to the top of search results for 14 days.`,
           },
         },
         quantity: 1,
       },
     ],
-    metadata: { job_id: String(job_id), employer_id: String(employer.id) },
+    metadata: { job_id: String(job_id), employer_id: String(employer.id), listing_tier: "sponsored" },
     success_url: `${siteUrl}/dashboard/company?boost=success&job=${job_id}`,
     cancel_url: `${siteUrl}/dashboard/company?boost=cancelled`,
   });
 
   await sql`
     INSERT INTO boosts (job_id, employer_id, stripe_session_id, amount_cents, status)
-    VALUES (${job_id}, ${employer.id}, ${checkoutSession.id}, 9900, 'pending')
+    VALUES (${job_id}, ${employer.id}, ${checkoutSession.id}, 7900, 'pending')
   `;
 
   return NextResponse.json({ ok: true, url: checkoutSession.url });

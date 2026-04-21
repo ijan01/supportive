@@ -27,7 +27,8 @@ export default async function CompanyDashboard() {
   const activeJobs = jobs.filter((j) => j.status === "active");
   const expiredJobs = jobs.filter((j) => j.status === "expired");
   const newApps = jobs.reduce((sum, j) => sum + j.application_count, 0);
-  const boostedCount = activeJobs.filter((j) => j.is_boosted).length;
+  const premiumCount = activeJobs.filter((j) => j.listing_tier === "premium").length;
+  const sponsoredCount = activeJobs.filter((j) => j.is_boosted || j.listing_tier === "sponsored").length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -104,7 +105,7 @@ export default async function CompanyDashboard() {
       ) : null}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <div className="text-2xl font-bold text-violet-600">{activeJobs.length}</div>
           <div className="text-slate-500 text-xs font-medium">Active Jobs</div>
@@ -114,8 +115,12 @@ export default async function CompanyDashboard() {
           <div className="text-slate-500 text-xs font-medium">Applications</div>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <div className="text-2xl font-bold text-amber-600">{boostedCount}</div>
-          <div className="text-slate-500 text-xs font-medium">Boosted</div>
+          <div className="text-2xl font-bold text-pink-600">{premiumCount}</div>
+          <div className="text-slate-500 text-xs font-medium">Premium</div>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="text-2xl font-bold text-emerald-600">{sponsoredCount}</div>
+          <div className="text-slate-500 text-xs font-medium">Sponsored</div>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <div className="text-2xl font-bold text-slate-400">{expiredJobs.length}</div>
@@ -141,8 +146,20 @@ export default async function CompanyDashboard() {
             const daysLeft = job.valid_through ? Math.max(0, Math.ceil((new Date(job.valid_through).getTime() - Date.now()) / 86400000)) : null;
             const boostDaysLeft = job.boosted_until ? Math.max(0, Math.ceil((new Date(job.boosted_until).getTime() - Date.now()) / 86400000)) : 0;
 
+            const tier = job.listing_tier || "basic";
+            const isPremium = tier === "premium";
+            const isSponsored = tier === "sponsored" || (job.is_boosted && boostDaysLeft > 0);
+
+            const cardBorder = isExpired
+              ? "border-slate-200 opacity-70"
+              : isSponsored
+              ? "border-emerald-300 ring-1 ring-emerald-100"
+              : isPremium
+              ? "border-pink-300 ring-1 ring-pink-100"
+              : "border-slate-200";
+
             return (
-              <div key={job.id} className={`bg-white rounded-xl border p-6 hover:shadow-md transition-all ${isExpired ? "border-slate-200 opacity-70" : job.is_boosted ? "border-emerald-300 ring-1 ring-emerald-100" : "border-slate-200"}`}>
+              <div key={job.id} className={`bg-white rounded-xl border p-6 hover:shadow-md transition-all ${cardBorder}`}>
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -150,12 +167,18 @@ export default async function CompanyDashboard() {
                         {job.title}
                       </Link>
                       {isExpired && <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">Expired</span>}
-                      {job.is_boosted && boostDaysLeft > 0 && (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                          Boosted — {boostDaysLeft}d left
+                      {!isExpired && isPremium && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-pink-500 text-white">Premium</span>
+                      )}
+                      {isSponsored && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-600 text-white">
+                          Sponsored — {boostDaysLeft}d left
                         </span>
                       )}
-                      {!isExpired && !job.is_boosted && daysLeft !== null && daysLeft <= 7 && (
+                      {!isExpired && !isSponsored && !isPremium && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">Basic</span>
+                      )}
+                      {!isExpired && !isSponsored && daysLeft !== null && daysLeft <= 7 && (
                         <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
                           Expires in {daysLeft}d
                         </span>
@@ -181,7 +204,7 @@ export default async function CompanyDashboard() {
                         Edit
                       </Link>
                     )}
-                    <DashboardActions jobId={job.id} isExpired={isExpired} isBoosted={job.is_boosted && boostDaysLeft > 0} />
+                    <DashboardActions jobId={job.id} isExpired={isExpired} isBoosted={isSponsored} />
                     <DeleteJobButton jobId={job.id} />
                   </div>
                 </div>

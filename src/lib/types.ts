@@ -52,6 +52,8 @@ export interface EmployerWithJobCount extends Employer {
   active_job_count: number;
 }
 
+export type ListingTier = "basic" | "premium" | "sponsored";
+
 export interface Job {
   id: number;
   user_id: number | null;
@@ -93,6 +95,8 @@ export interface Job {
   view_count: number;
   apply_click_count: number;
   renewal_email_sent_at: string | null;
+  listing_tier: ListingTier;
+  stripe_session_id: string | null;
 }
 
 export interface JobWithEmployer extends Job {

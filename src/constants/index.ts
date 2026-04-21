@@ -133,6 +133,65 @@ export const JOB_TYPE_COLORS: Record<string, string> = {
   "Internship": "bg-pink-100 text-pink-700",
 };
 
+export interface ListingTierDef {
+  value: string;
+  label: string;
+  price: number;
+  duration: number;
+  badgeLabel: string | null;
+  badgeColor: string;
+  description: string;
+  features: string[];
+}
+
+export const LISTING_TIERS: ListingTierDef[] = [
+  {
+    value: "basic",
+    label: "Basic",
+    price: 0,
+    duration: 28,
+    badgeLabel: null,
+    badgeColor: "",
+    description: "Standard listing visible in search results for 28 days.",
+    features: [
+      "Listed in search results",
+      "Appears on role and location pages",
+      "28-day listing duration",
+    ],
+  },
+  {
+    value: "premium",
+    label: "Premium",
+    price: 14900,
+    duration: 28,
+    badgeLabel: "Premium",
+    badgeColor: "bg-pink-500 text-white",
+    description: "Top performing ad, for critical & hard-to-fill roles.",
+    features: [
+      "\"Recommended\" badge on your listing",
+      "Ranked above Basic listings",
+      "28-day listing duration",
+      "Included in weekly job alert emails",
+      "Enhanced visibility on role pages",
+    ],
+  },
+  {
+    value: "sponsored",
+    label: "Sponsored",
+    price: 7900,
+    duration: 14,
+    badgeLabel: "Sponsored",
+    badgeColor: "bg-emerald-600 text-white",
+    description: "Boost any listing to the top of results for 14 days.",
+    features: [
+      "\"Sponsored\" badge on your listing",
+      "Pinned to the top of search results",
+      "14-day sponsored placement",
+      "Promoted on social media channels",
+    ],
+  },
+];
+
 export const APPLICATION_STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
   reviewed: "bg-blue-100 text-blue-700",

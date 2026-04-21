@@ -19,14 +19,43 @@ export default function JobCard({ job }: { job: Job | JobWithEmployer }) {
     .map((slug) => EMPLOYER_BENEFITS.find((b) => b.slug === slug))
     .filter(Boolean);
 
+  const tier = job.listing_tier || "basic";
+  const isPremium = tier === "premium";
+  const isSponsored = tier === "sponsored" || job.is_boosted;
+
+  const cardBorder = isSponsored
+    ? "border-emerald-300 ring-1 ring-emerald-100"
+    : isPremium
+    ? "border-pink-300 ring-1 ring-pink-100"
+    : "border-slate-200";
+
   return (
     <Link href={`/jobs/${job.id}`} className="group block">
-      <div className={`relative bg-white rounded-2xl border p-6 hover:border-violet-300 hover:shadow-lg transition-all duration-200 ${job.is_boosted ? "border-emerald-300 ring-1 ring-emerald-100" : "border-slate-200"}`}>
-        {(job.is_featured === 1 || job.is_boosted) && (
-          <span className={`absolute top-4 right-4 px-2.5 py-0.5 rounded-full text-xs font-semibold ${job.is_boosted ? "bg-emerald-600 text-white" : "bg-violet-600 text-white"}`}>
-            Featured
-          </span>
-        )}
+      <div className={`relative bg-white rounded-2xl border p-6 hover:shadow-lg transition-all duration-200 ${cardBorder}`}>
+        {/* Tier badges */}
+        <div className="absolute top-4 right-4 flex gap-1.5">
+          {isPremium && (
+            <>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-100 text-pink-700 uppercase tracking-wide">
+                Recommended
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500 text-white">
+                Premium
+              </span>
+            </>
+          )}
+          {isSponsored && (
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-600 text-white">
+              Sponsored
+            </span>
+          )}
+          {!isPremium && !isSponsored && job.is_featured === 1 && (
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-600 text-white">
+              Featured
+            </span>
+          )}
+        </div>
+
         <div className="flex items-start gap-4">
           {hasEmployer && job.employer_logo_url ? (
             <img src={job.employer_logo_url} alt="" className="w-11 h-11 rounded-xl object-cover border border-slate-100 shrink-0" />
@@ -36,7 +65,7 @@ export default function JobCard({ job }: { job: Job | JobWithEmployer }) {
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-slate-900 group-hover:text-violet-600 transition-colors truncate">
+            <h3 className="font-semibold text-slate-900 group-hover:text-violet-600 transition-colors truncate pr-24">
               {job.title}
             </h3>
             <div className="flex items-center gap-2 mt-0.5">

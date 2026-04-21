@@ -67,8 +67,8 @@ export default function DashboardActions({ jobId, isExpired, isBoosted }: Props)
       )}
 
       {!isExpired && !isBoosted && (
-        <button onClick={handleBoost} disabled={loading === "boost"} className="px-3 py-2 rounded-lg border border-violet-200 text-violet-700 bg-violet-50 hover:bg-violet-100 transition-colors text-sm font-medium disabled:opacity-50">
-          {loading === "boost" ? "..." : "Boost — $99"}
+        <button onClick={handleBoost} disabled={loading === "boost"} className="px-3 py-2 rounded-lg border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors text-sm font-medium disabled:opacity-50">
+          {loading === "boost" ? "..." : "Sponsor — $79"}
         </button>
       )}
     </>

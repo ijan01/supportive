@@ -26,7 +26,7 @@ export async function getJobs(filters?: JobFilters & { benefits?: string[] }): P
       AND (${category}::text IS NULL OR j.category = ${category})
       AND (${jobType}::text IS NULL OR j.job_type = ${jobType})
       AND (${benefitsFilter}::jsonb IS NULL OR e.benefits @> ${benefitsFilter}::jsonb)
-    ORDER BY j.is_boosted DESC, j.is_featured DESC, j.posted_date DESC NULLS LAST, j.created_at DESC
+    ORDER BY (CASE j.listing_tier WHEN 'sponsored' THEN 3 WHEN 'premium' THEN 2 ELSE 1 END) DESC, j.is_boosted DESC, j.is_featured DESC, j.posted_date DESC NULLS LAST, j.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `;
   return result.rows.map(parseJobWithEmployer);
@@ -93,7 +93,7 @@ export async function getFeaturedJobs(limit = 6): Promise<JobWithEmployer[]> {
     FROM jobs j
     LEFT JOIN employers e ON e.id = j.employer_id
     WHERE j.status = 'active'
-    ORDER BY j.is_boosted DESC, j.is_featured DESC, j.posted_date DESC NULLS LAST, j.created_at DESC
+    ORDER BY (CASE j.listing_tier WHEN 'sponsored' THEN 3 WHEN 'premium' THEN 2 ELSE 1 END) DESC, j.is_boosted DESC, j.is_featured DESC, j.posted_date DESC NULLS LAST, j.created_at DESC
     LIMIT ${limit}
   `;
   return result.rows.map(parseJobWithEmployer);
@@ -115,7 +115,7 @@ export async function getJobsByRoleAndLocation(
     WHERE j.status = 'active'
       AND j.category = ${roleName}
       AND j.location = ${locationName}
-    ORDER BY j.is_boosted DESC, j.posted_date DESC NULLS LAST, j.created_at DESC
+    ORDER BY (CASE j.listing_tier WHEN 'sponsored' THEN 3 WHEN 'premium' THEN 2 ELSE 1 END) DESC, j.is_boosted DESC, j.posted_date DESC NULLS LAST, j.created_at DESC
     LIMIT ${limit}
   `;
   return result.rows.map(parseJobWithEmployer);
@@ -134,18 +134,25 @@ export async function getJobsByUserId(userId: number): Promise<JobWithApplicatio
   return result.rows as JobWithApplicationCount[];
 }
 
-export async function createJob(userId: number, input: CreateJobInput & { apply_method?: string }): Promise<Job> {
+export async function createJob(userId: number, input: CreateJobInput & { apply_method?: string; listing_tier?: string; stripe_session_id?: string }): Promise<Job> {
   await ensureInitialized();
   const empResult = await sql`SELECT id, slug FROM employers WHERE user_id = ${userId}`;
   const employerId = empResult.rows[0]?.id as number | undefined ?? null;
   const employerSlug = empResult.rows[0]?.slug as string | undefined ?? null;
 
+  const tier = input.listing_tier || "basic";
+  const duration = tier === "sponsored" ? 14 : 28;
+  const isBoosted = tier === "sponsored";
+  const isFeatured = tier === "premium" || tier === "sponsored" ? 1 : 0;
+
   const result = await sql`
-    INSERT INTO jobs (user_id, title, company, location, category, job_type, salary_min, salary_max, description, requirements, apply_url, apply_method, source, status, employer_name, employer_slug, employer_id, posted_date, valid_through)
+    INSERT INTO jobs (user_id, title, company, location, category, job_type, salary_min, salary_max, description, requirements, apply_url, apply_method, source, status, employer_name, employer_slug, employer_id, posted_date, valid_through, listing_tier, is_boosted, is_featured, stripe_session_id, boosted_until)
     VALUES (${userId}, ${input.title}, ${input.company}, ${input.location}, ${input.category}, ${input.job_type},
             ${input.salary_min || null}, ${input.salary_max || null}, ${input.description}, ${input.requirements},
             ${input.apply_url || null}, ${input.apply_method || "external"}, 'manual', 'active', ${input.company}, ${employerSlug},
-            ${employerId}, NOW(), NOW() + INTERVAL '28 days')
+            ${employerId}, NOW(), NOW() + (${duration} || ' days')::interval, ${tier},
+            ${isBoosted}, ${isFeatured}, ${input.stripe_session_id || null},
+            ${isBoosted ? sql`NOW() + INTERVAL '14 days'` : null})
     RETURNING *
   `;
   return result.rows[0] as Job;
@@ -272,7 +279,7 @@ export async function getRecentJobsWithEmployer(limit = 10): Promise<JobWithEmpl
     FROM jobs j
     LEFT JOIN employers e ON e.id = j.employer_id
     WHERE j.status = 'active'
-    ORDER BY j.is_boosted DESC, j.created_at DESC
+    ORDER BY (CASE j.listing_tier WHEN 'sponsored' THEN 3 WHEN 'premium' THEN 2 ELSE 1 END) DESC, j.is_boosted DESC, j.created_at DESC
     LIMIT ${limit}
   `;
   return result.rows.map(parseJobWithEmployer);

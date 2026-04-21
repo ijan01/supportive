@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { JOB_TYPES, MH_ROLES, MH_ROLE_GROUPS, AU_LOCATIONS } from "@/constants";
+import { JOB_TYPES, MH_ROLES, MH_ROLE_GROUPS, AU_LOCATIONS, LISTING_TIERS } from "@/constants";
 import { Job } from "@/lib/types";
 
 interface PostJobFormProps {
@@ -22,6 +22,7 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
   const [requirements, setRequirements] = useState(existingJob?.requirements || "");
   const [applyMethod, setApplyMethod] = useState<"external" | "internal">(existingJob?.apply_method || "external");
   const [applyUrl, setApplyUrl] = useState(existingJob?.apply_url || "");
+  const [listingTier, setListingTier] = useState<string>(existingJob?.listing_tier || "basic");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -42,6 +43,7 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
       description, requirements,
       apply_method: applyMethod,
       apply_url: applyMethod === "external" ? applyUrl : "",
+      listing_tier: listingTier,
     };
 
     try {
@@ -55,6 +57,12 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save job");
 
+      // If paid tier and we get a checkout URL, redirect to Stripe
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+
       router.push("/dashboard/company?posted=1");
       router.refresh();
     } catch (err) {
@@ -63,9 +71,60 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
     }
   }
 
+  const isEditing = !!existingJob;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && <div className="p-3 rounded-xl bg-red-50 text-red-600 text-sm">{error}</div>}
+
+      {/* Listing tier selector — only on create */}
+      {!isEditing && (
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-3">Choose your listing type</label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {LISTING_TIERS.map((tier) => {
+              const selected = listingTier === tier.value;
+              return (
+                <button
+                  key={tier.value}
+                  type="button"
+                  onClick={() => setListingTier(tier.value)}
+                  className={`relative p-4 rounded-xl border-2 text-left transition-all ${
+                    selected
+                      ? tier.value === "premium"
+                        ? "border-pink-500 bg-pink-50"
+                        : tier.value === "sponsored"
+                        ? "border-emerald-500 bg-emerald-50"
+                        : "border-violet-500 bg-violet-50"
+                      : "border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  {tier.value === "premium" && (
+                    <span className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-pink-500 text-white uppercase tracking-wide">
+                      Recommended
+                    </span>
+                  )}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-slate-900 text-sm">{tier.label}</span>
+                    <span className="text-sm font-semibold text-slate-700">
+                      {tier.price === 0 ? "Free" : `$${tier.price / 100}`}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-3">{tier.description}</p>
+                  <ul className="space-y-1">
+                    {tier.features.map((f, i) => (
+                      <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                        <svg className="w-3 h-3 text-emerald-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Job Title *</label>
@@ -159,7 +218,7 @@ export default function PostJobForm({ defaultCompany = "", existingJob }: PostJo
 
       <div className="flex gap-3 pt-2">
         <button type="submit" disabled={loading} className="px-8 py-3 rounded-full bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-all disabled:opacity-50">
-          {loading ? "Saving..." : existingJob ? "Update Job" : "Post Job"}
+          {loading ? "Saving..." : isEditing ? "Update Job" : listingTier === "basic" ? "Post Job (Free)" : `Post Job & Pay $${LISTING_TIERS.find((t) => t.value === listingTier)!.price / 100}`}
         </button>
         <button type="button" onClick={() => router.back()} className="px-6 py-3 rounded-full border-2 border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all">
           Cancel

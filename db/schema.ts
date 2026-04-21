@@ -251,8 +251,11 @@ async function addEmployerTables(): Promise<void> {
   await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS view_count INTEGER NOT NULL DEFAULT 0`.catch(() => {});
   await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS apply_click_count INTEGER NOT NULL DEFAULT 0`.catch(() => {});
   await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS renewal_email_sent_at TIMESTAMPTZ`.catch(() => {});
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS listing_tier TEXT NOT NULL DEFAULT 'basic'`.catch(() => {});
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS stripe_session_id TEXT`.catch(() => {});
   await sql`CREATE INDEX IF NOT EXISTS idx_jobs_employer_id ON jobs(employer_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_jobs_is_boosted ON jobs(is_boosted)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_jobs_listing_tier ON jobs(listing_tier)`.catch(() => {});
 
   // New columns on applications
   await sql`ALTER TABLE applications ADD COLUMN IF NOT EXISTS phone TEXT`.catch(() => {});
