@@ -192,5 +192,72 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  return NextResponse.json({ ok: true, results });
+  // Repair pass: find blog posts with no content_plan match and link them by title
+  const orphans = await sql`
+    SELECT bp.id, bp.slug, bp.title, bp.published_at
+    FROM blog_posts bp
+    LEFT JOIN content_plan cp ON cp.slug = bp.slug
+    WHERE cp.id IS NULL
+  `;
+
+  const repaired = [];
+  for (const row of orphans.rows) {
+    const bp = row as { id: number; slug: string; title: string; published_at: string | null };
+
+    // Extract the first 4+ meaningful words from the title for a fuzzy match
+    const words = bp.title
+      .replace(/[^a-zA-Z0-9 ]/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length > 3)
+      .slice(0, 4);
+
+    if (words.length === 0) continue;
+
+    // Build an ILIKE pattern using the first significant words
+    const pattern = `%${words.join("%")}%`;
+    const match = await sql`
+      SELECT id, article_number, content_type, target_role, target_keyword, secondary_keywords,
+             target_word_count_min, target_word_count_max
+      FROM content_plan
+      WHERE title ILIKE ${pattern}
+      ORDER BY article_number ASC
+      LIMIT 1
+    `;
+
+    if (match.rows.length === 0) {
+      repaired.push({ slug: bp.slug, title: bp.title, matched: false });
+      continue;
+    }
+
+    const cp = match.rows[0] as {
+      id: number;
+      article_number: number;
+      content_type: string;
+      target_role: string | null;
+      target_keyword: string | null;
+      secondary_keywords: string | null;
+      target_word_count_min: number | null;
+      target_word_count_max: number | null;
+    };
+
+    await sql`
+      UPDATE content_plan SET
+        slug = ${bp.slug},
+        status = CASE WHEN ${bp.published_at} IS NOT NULL THEN 'Published' ELSE status END,
+        published_url = CASE WHEN ${bp.published_at} IS NOT NULL THEN ${SITE_URL + "/blog/" + bp.slug} ELSE published_url END,
+        published_at = CASE WHEN ${bp.published_at} IS NOT NULL THEN COALESCE(published_at, NOW()) ELSE published_at END,
+        updated_at = NOW()
+      WHERE id = ${cp.id}
+    `;
+
+    repaired.push({
+      slug: bp.slug,
+      title: bp.title,
+      matched: true,
+      linked_article_number: cp.article_number,
+      content_type: cp.content_type,
+    });
+  }
+
+  return NextResponse.json({ ok: true, results, repaired });
 }
