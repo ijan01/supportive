@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 interface BlogPostFormProps {
   mode: "create" | "edit";
+  contentPlanId?: number;
   initialData?: {
     id: number;
     title: string;
@@ -44,7 +45,7 @@ const TOOLBAR_ACTIONS: ToolbarAction[] = [
   { label: "Link", icon: "Link", prefix: "[", suffix: "](url)" },
 ];
 
-export default function BlogPostForm({ mode, initialData }: BlogPostFormProps) {
+export default function BlogPostForm({ mode, contentPlanId, initialData }: BlogPostFormProps) {
   const router = useRouter();
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const [title, setTitle] = useState(initialData?.title || "");
@@ -57,6 +58,7 @@ export default function BlogPostForm({ mode, initialData }: BlogPostFormProps) {
   const [published, setPublished] = useState(initialData?.published ?? false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
   const [autoSlug, setAutoSlug] = useState(!initialData);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -94,6 +96,31 @@ export default function BlogPostForm({ mode, initialData }: BlogPostFormProps) {
       textarea.selectionStart = textarea.selectionEnd = cursorPos;
     });
   }, []);
+
+  async function handleRegenerate() {
+    if (!contentPlanId) return;
+    setRegenerating(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/content/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleId: contentPlanId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Regeneration failed");
+        return;
+      }
+      // Reload the page to pull in the freshly generated content
+      router.refresh();
+      window.location.reload();
+    } catch {
+      setError("Regeneration failed — please try again");
+    } finally {
+      setRegenerating(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -276,14 +303,31 @@ export default function BlogPostForm({ mode, initialData }: BlogPostFormProps) {
         </span>
       </div>
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-wrap gap-3 pt-2">
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || regenerating}
           className="px-8 py-3 rounded-full bg-violet-600 text-white font-semibold hover:bg-violet-700 transition-all disabled:opacity-50"
         >
           {loading ? "Saving..." : mode === "create" ? "Create post" : "Update post"}
         </button>
+        {contentPlanId && (
+          <button
+            type="button"
+            onClick={handleRegenerate}
+            disabled={loading || regenerating}
+            className="px-6 py-3 rounded-full border-2 border-violet-200 text-violet-700 font-medium hover:bg-violet-50 transition-all disabled:opacity-50 flex items-center gap-2"
+          >
+            {regenerating ? (
+              <>
+                <span className="inline-block w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+                Regenerating…
+              </>
+            ) : (
+              "Regenerate from content plan"
+            )}
+          </button>
+        )}
         <button
           type="button"
           onClick={() => router.back()}

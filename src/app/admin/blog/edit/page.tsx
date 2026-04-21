@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getBlogPostById, getBlogPostBySlugAdmin } from "@/lib/blog";
+import { sql, ensureInitialized } from "@/lib/db";
 import BlogPostForm from "@/components/BlogPostForm";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,10 @@ export default async function EditBlogPostPage({
 
   if (!post) notFound();
 
+  await ensureInitialized();
+  const cpRow = await sql`SELECT id FROM content_plan WHERE slug = ${post.slug} LIMIT 1`;
+  const contentPlanId = cpRow.rows[0]?.id as number | undefined;
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex items-center gap-2 text-sm mb-1">
@@ -33,6 +38,7 @@ export default async function EditBlogPostPage({
       <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
         <BlogPostForm
           mode="edit"
+          contentPlanId={contentPlanId}
           initialData={{
             id: post.id,
             title: post.title,
