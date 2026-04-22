@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { JOB_TYPES, MH_ROLES, MH_ROLE_GROUPS, AU_LOCATIONS } from "@/constants";
+import { JOB_TYPES, MH_ROLES, MH_ROLE_GROUPS, AU_LOCATIONS, EMPLOYER_BENEFITS } from "@/constants";
+
+const FILTER_BENEFITS = EMPLOYER_BENEFITS.filter((b) =>
+  ["salary-packaging", "paid-supervision", "supervision-provided", "above-award-pay", "flexible-hybrid", "paid-pd", "telehealth-option", "ahpra-fees-covered"].includes(b.slug)
+);
 
 export default function JobFilters() {
   const router = useRouter();
@@ -11,8 +15,12 @@ export default function JobFilters() {
   const location = searchParams.get("location") || "";
   const category = searchParams.get("category") || "";
   const jobType = searchParams.get("job_type") || "";
+  const benefitsParam = searchParams.get("benefits") || "";
 
   const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
+  const [showBenefits, setShowBenefits] = useState(!!benefitsParam);
+
+  const selectedBenefits = benefitsParam ? benefitsParam.split(",") : [];
 
   function buildParams(overrides: Record<string, string>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -23,6 +31,7 @@ export default function JobFilters() {
         params.delete(key);
       }
     }
+    params.delete("page");
     return params.toString();
   }
 
@@ -34,12 +43,20 @@ export default function JobFilters() {
     router.push(`/jobs?${buildParams({ [key]: value })}`);
   }
 
+  function toggleBenefit(slug: string) {
+    const updated = selectedBenefits.includes(slug)
+      ? selectedBenefits.filter((b) => b !== slug)
+      : [...selectedBenefits, slug];
+    updateParam("benefits", updated.join(","));
+  }
+
   function clearAll() {
     setSearchValue("");
+    setShowBenefits(false);
     router.push("/jobs");
   }
 
-  const hasFilters = searchValue || location || category || jobType;
+  const hasFilters = searchValue || location || category || jobType || benefitsParam;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5">
@@ -99,17 +116,47 @@ export default function JobFilters() {
               <option key={type} value={type}>{type}</option>
             ))}
           </select>
-          {hasFilters ? (
+          <div className="flex gap-2">
             <button
-              onClick={clearAll}
-              className="w-full px-4 py-2.5 rounded-xl text-violet-600 font-medium hover:bg-violet-50 transition-colors text-sm border border-slate-200"
+              onClick={() => setShowBenefits(!showBenefits)}
+              className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border ${
+                selectedBenefits.length > 0
+                  ? "border-violet-300 bg-violet-50 text-violet-700"
+                  : "border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
             >
-              Clear filters
+              Benefits{selectedBenefits.length > 0 ? ` (${selectedBenefits.length})` : ""}
             </button>
-          ) : (
-            <div className="hidden lg:block" />
-          )}
+            {hasFilters && (
+              <button
+                onClick={clearAll}
+                className="px-3 py-2.5 rounded-xl text-violet-600 font-medium hover:bg-violet-50 transition-colors text-sm border border-slate-200 shrink-0"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Benefits checkboxes */}
+        {showBenefits && (
+          <div className="pt-2 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-500 mb-2">Show employers offering:</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5">
+              {FILTER_BENEFITS.map((b) => (
+                <label key={b.slug} className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded-lg hover:bg-slate-50">
+                  <input
+                    type="checkbox"
+                    checked={selectedBenefits.includes(b.slug)}
+                    onChange={() => toggleBenefit(b.slug)}
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                  />
+                  <span className="text-xs text-slate-600">{b.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

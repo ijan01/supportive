@@ -31,7 +31,13 @@ export default async function JobsPage({
   if (params.category) filters.category = params.category;
   if (params.job_type) filters.job_type = params.job_type;
 
-  const [jobs, total, session] = await Promise.all([getJobs(filters), getJobCount(filters), getSession()]);
+  const benefits = params.benefits ? params.benefits.split(",").filter(Boolean) : undefined;
+
+  const [jobs, total, session] = await Promise.all([
+    getJobs({ ...filters, benefits }),
+    getJobCount({ ...filters, benefits }),
+    getSession(),
+  ]);
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const isAnonymous = !session?.user;
 
@@ -41,6 +47,7 @@ export default async function JobsPage({
     if (params.location) q.set("location", params.location);
     if (params.category) q.set("category", params.category);
     if (params.job_type) q.set("job_type", params.job_type);
+    if (params.benefits) q.set("benefits", params.benefits);
     if (p > 1) q.set("page", String(p));
     const qs = q.toString();
     return `/jobs${qs ? `?${qs}` : ""}`;
