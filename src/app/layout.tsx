@@ -39,6 +39,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: siteUrl,
   },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+  },
 };
 
 export default function RootLayout({
