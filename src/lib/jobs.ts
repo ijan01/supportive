@@ -196,10 +196,10 @@ export async function getRecentJobs(limit = 10): Promise<Job[]> {
   return result.rows as Job[];
 }
 
-export async function getAllJobIds(): Promise<number[]> {
+export async function getAllJobIds(): Promise<Array<{ id: number; updated_at: string }>> {
   await ensureInitialized();
-  const result = await sql`SELECT id FROM jobs WHERE status = 'active'`;
-  return result.rows.map((r) => r.id as number);
+  const result = await sql`SELECT id, updated_at FROM jobs WHERE status = 'active'`;
+  return result.rows as Array<{ id: number; updated_at: string }>;
 }
 
 export async function getJobCountByRoleAndLocation(

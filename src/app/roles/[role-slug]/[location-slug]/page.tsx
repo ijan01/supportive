@@ -7,6 +7,9 @@ import { getJobCountByRoleAndLocation, getJobsByRoleAndLocation } from "@/lib/jo
 import { getRoleLocationContent } from "@/content/role-location";
 import { formatSalary } from "@/lib/utils";
 import JobCard from "@/components/JobCard";
+import JsonLd from "@/components/JsonLd";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { buildBreadcrumbSchema, buildCollectionPageSchema } from "@/lib/jsonld";
 
 export function generateStaticParams() {
   return MH_ROLES.flatMap((role) =>
@@ -68,15 +71,31 @@ export default async function RoleLocationPage({
     // DB not available at build time
   }
 
+  const description = content
+    ? `Find ${role.name} jobs in ${loc.name}. ${content.demandNote} Browse current listings on Supportive.`
+    : `Browse ${role.name} roles in ${loc.name}. Find opportunities with mission-aligned mental health employers on Supportive.`;
+  const collectionSchema = buildCollectionPageSchema(
+    `${role.name} jobs in ${loc.name}`,
+    description,
+    `/roles/${p["role-slug"]}/${p["location-slug"]}`
+  );
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: "Home", url: "/" },
+    { name: "Roles", url: "/roles" },
+    { name: role.name, url: `/roles/${p["role-slug"]}` },
+    { name: loc.name },
+  ]);
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-2 text-sm text-slate-400">
-        <Link href="/roles" className="hover:text-violet-600 transition-colors">Roles</Link>
-        <span className="mx-2">&rsaquo;</span>
-        <Link href={`/roles/${p["role-slug"]}`} className="hover:text-violet-600 transition-colors">{role.name}</Link>
-        <span className="mx-2">&rsaquo;</span>
-        <span>{loc.name}</span>
-      </div>
+      <JsonLd data={collectionSchema} />
+      <JsonLd data={breadcrumbSchema} />
+      <Breadcrumbs items={[
+        { label: "Home", href: "/" },
+        { label: "Roles", href: "/roles" },
+        { label: role.name, href: `/roles/${p["role-slug"]}` },
+        { label: loc.name },
+      ]} />
 
       <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">{role.name} jobs in {loc.name}</h1>
       <p className="text-slate-500 mb-8">

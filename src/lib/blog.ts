@@ -13,10 +13,10 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefi
   return result.rows[0] as unknown as BlogPost | undefined;
 }
 
-export async function getAllBlogSlugs(): Promise<string[]> {
+export async function getAllBlogSlugs(): Promise<Array<{ slug: string; published_at: string }>> {
   await ensureInitialized();
-  const result = await sql`SELECT slug FROM blog_posts WHERE published_at IS NOT NULL`;
-  return result.rows.map((r) => r.slug as string);
+  const result = await sql`SELECT slug, published_at FROM blog_posts WHERE published_at IS NOT NULL`;
+  return result.rows as Array<{ slug: string; published_at: string }>;
 }
 
 export async function getAllBlogPostsAdmin(): Promise<BlogPost[]> {

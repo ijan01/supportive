@@ -4,8 +4,11 @@ import { getBlogPostBySlug, getAllBlogSlugs } from "@/lib/blog";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 import BlogContent from "./content";
+import { buildBlogPostingSchema, buildBreadcrumbSchema } from "@/lib/jsonld";
 
 export const dynamic = "force-dynamic";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
 
 export async function generateMetadata({
   params,
@@ -31,6 +34,21 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.published_at || undefined,
       authors: [post.author],
+      url: `${siteUrl}/blog/${post.slug}`,
+      images: [
+        {
+          url: "/opengraph-image",
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+      images: ["/opengraph-image"],
     },
     alternates: {
       canonical: `/blog/${post.slug}`,
@@ -40,8 +58,8 @@ export async function generateMetadata({
 
 export async function generateStaticParams() {
   try {
-    const slugs = await getAllBlogSlugs();
-    return slugs.map((slug) => ({ slug }));
+    const posts = await getAllBlogSlugs();
+    return posts.map((p) => ({ slug: p.slug }));
   } catch {
     return [];
   }
@@ -60,19 +78,17 @@ export default async function BlogPostPage({
     ? new Date(post.published_at).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })
     : "";
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.excerpt,
-    author: { "@type": "Person", name: post.author },
-    datePublished: post.published_at,
-    publisher: { "@type": "Organization", name: "Supportive" },
-  };
+  const articleSchema = buildBlogPostingSchema(post);
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: "Home", url: "/" },
+    { name: "Blog", url: "/blog" },
+    { name: post.title },
+  ]);
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <JsonLd data={jsonLd} />
+      <JsonLd data={articleSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <Breadcrumbs items={[
         { label: "Home", href: "/" },
         { label: "Blog", href: "/blog" },

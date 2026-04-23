@@ -5,6 +5,11 @@ import { AU_LOCATIONS, MH_ROLES } from "@/constants";
 import { getJobs, getJobCount } from "@/lib/jobs";
 import { LOCATION_CONTENT } from "@/content/locations";
 import JobCard from "@/components/JobCard";
+import JsonLd from "@/components/JsonLd";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from "@/lib/jsonld";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
 
 export function generateStaticParams() {
   return AU_LOCATIONS.map((l) => ({ "location-slug": l.slug }));
@@ -28,10 +33,25 @@ export async function generateMetadata({
     // DB not available at build time
   }
 
+  const description = content?.summary ?? `Browse ${count > 0 ? `${count} ` : ""}mental health and supportive services roles in ${loc.name}. Find clinical, allied health, community, and NDIS positions on Supportive.`;
+
   return {
     title: `Mental health jobs in ${loc.name}`,
-    description: content?.summary ?? `Browse ${count > 0 ? `${count} ` : ""}mental health and supportive services roles in ${loc.name}. Find clinical, allied health, community, and NDIS positions on Supportive.`,
+    description,
     alternates: { canonical: `/locations/${p["location-slug"]}` },
+    openGraph: {
+      title: `Mental health jobs in ${loc.name}`,
+      description,
+      type: "website",
+      url: `${siteUrl}/locations/${p["location-slug"]}`,
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `Mental health jobs in ${loc.name}` }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Mental health jobs in ${loc.name}`,
+      description,
+      images: ["/opengraph-image"],
+    },
   };
 }
 
@@ -57,13 +77,27 @@ export default async function LocationHubPage({
     // DB not available at build time
   }
 
+  const description = content?.summary ?? `Browse mental health and supportive services roles in ${loc.name}. Find clinical, allied health, community, and NDIS positions on Supportive.`;
+  const collectionSchema = buildCollectionPageSchema(
+    `Mental health jobs in ${loc.name}`,
+    description,
+    `/locations/${p["location-slug"]}`
+  );
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: "Home", url: "/" },
+    { name: "Locations", url: "/locations" },
+    { name: loc.name },
+  ]);
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-2 text-sm text-slate-400">
-        <Link href="/locations" className="hover:text-violet-600 transition-colors">Locations</Link>
-        <span className="mx-2">›</span>
-        <span>{loc.name}</span>
-      </div>
+      <JsonLd data={collectionSchema} />
+      <JsonLd data={breadcrumbSchema} />
+      <Breadcrumbs items={[
+        { label: "Home", href: "/" },
+        { label: "Locations", href: "/locations" },
+        { label: loc.name },
+      ]} />
 
       <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">Mental health jobs in {loc.name}</h1>
       <p className="text-slate-500 mb-8">

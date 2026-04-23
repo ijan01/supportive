@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Script from "next/script";
+import JsonLd from "@/components/JsonLd";
+import { buildWebSiteSchema } from "@/lib/jsonld";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -26,15 +28,31 @@ export const metadata: Metadata = {
     siteName: "Supportive",
     locale: "en_AU",
     url: siteUrl,
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Supportive — Mental health careers in Australia",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Supportive — Mental health careers in Australia",
     description: "Browse clinical, community, AOD, peer work, and NDIS roles posted by mission-aligned employers.",
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
   },
   alternates: {
     canonical: siteUrl,
@@ -57,6 +75,7 @@ export default function RootLayout({
   return (
     <html lang="en-AU" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-white text-slate-900">
+        <JsonLd data={buildWebSiteSchema()} />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

@@ -6,6 +6,11 @@ import { getJobs, getJobCount } from "@/lib/jobs";
 import { ROLE_CONTENT } from "@/content/roles";
 import JobCard from "@/components/JobCard";
 import { formatSalary } from "@/lib/utils";
+import JsonLd from "@/components/JsonLd";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { buildCollectionPageSchema, buildBreadcrumbSchema } from "@/lib/jsonld";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
 
 export function generateStaticParams() {
   return MH_ROLES.map((r) => ({ "role-slug": r.slug }));
@@ -29,10 +34,25 @@ export async function generateMetadata({
     // DB not available at build time
   }
 
+  const description = content?.summary ?? `Browse ${count > 0 ? `${count} ` : ""}${role.name} roles across Australia. Find opportunities with mission-aligned mental health and community services employers on Supportive.`;
+
   return {
     title: `${role.name} jobs in Australia`,
-    description: content?.summary ?? `Browse ${count > 0 ? `${count} ` : ""}${role.name} roles across Australia. Find opportunities with mission-aligned mental health and community services employers on Supportive.`,
+    description,
     alternates: { canonical: `/roles/${p["role-slug"]}` },
+    openGraph: {
+      title: `${role.name} jobs in Australia`,
+      description,
+      type: "website",
+      url: `${siteUrl}/roles/${p["role-slug"]}`,
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${role.name} jobs in Australia` }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${role.name} jobs in Australia`,
+      description,
+      images: ["/opengraph-image"],
+    },
   };
 }
 
@@ -58,13 +78,27 @@ export default async function RoleHubPage({
     // DB not available at build time
   }
 
+  const description = content?.summary ?? `Browse ${total > 0 ? `${total} ` : ""}${role.name} roles across Australia. Find opportunities with mission-aligned mental health and community services employers on Supportive.`;
+  const collectionSchema = buildCollectionPageSchema(
+    `${role.name} jobs in Australia`,
+    description,
+    `/roles/${p["role-slug"]}`
+  );
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: "Home", url: "/" },
+    { name: "Roles", url: "/roles" },
+    { name: role.name },
+  ]);
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-2 text-sm text-slate-400">
-        <Link href="/roles" className="hover:text-violet-600 transition-colors">Roles</Link>
-        <span className="mx-2">&rsaquo;</span>
-        <span>{role.name}</span>
-      </div>
+      <JsonLd data={collectionSchema} />
+      <JsonLd data={breadcrumbSchema} />
+      <Breadcrumbs items={[
+        { label: "Home", href: "/" },
+        { label: "Roles", href: "/roles" },
+        { label: role.name },
+      ]} />
 
       <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">{role.name} jobs in Australia</h1>
       <p className="text-slate-500 mb-8">

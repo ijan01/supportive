@@ -7,7 +7,10 @@ import { ORGANISATION_TYPES, EMPLOYER_BENEFITS } from "@/constants";
 import JobCard from "@/components/JobCard";
 import JsonLd from "@/components/JsonLd";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import { buildOrganizationSchema, buildBreadcrumbSchema } from "@/lib/jsonld";
 import { JobWithEmployer } from "@/lib/types";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
 
 export const dynamic = "force-dynamic";
 
@@ -31,15 +34,26 @@ export async function generateMetadata({
     ? ORGANISATION_TYPES.find((t) => t.value === employer.organisation_type)?.label
     : null;
 
+  const description = employer?.description
+    ? employer.description.slice(0, 155)
+    : `${name}${orgLabel ? ` is a ${orgLabel.toLowerCase()}` : ""} hiring mental health professionals. Browse open roles on Supportive.`;
+  const ogImage = employer?.logo_url || "/opengraph-image";
+
   return {
     title: `${name} Jobs and Careers | Supportive`,
-    description: employer?.description
-      ? employer.description.slice(0, 155)
-      : `${name}${orgLabel ? ` is a ${orgLabel.toLowerCase()}` : ""} hiring mental health professionals. Browse open roles on Supportive.`,
+    description,
     openGraph: {
       title: `${name} Jobs and Careers`,
       description: `Browse open mental health roles at ${name} on Supportive.`,
       type: "website",
+      url: `${siteUrl}/employers/${p["employer-slug"]}`,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: `${name} — mental health careers` }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} Jobs and Careers`,
+      description,
+      images: [ogImage],
     },
     alternates: { canonical: `/employers/${p["employer-slug"]}` },
   };
@@ -69,22 +83,17 @@ export default async function EmployerProfilePage({
     : [];
   const isFeatured = employer?.featured && (!employer.featured_until || new Date(employer.featured_until) > new Date());
 
-  const jsonLd = employer ? {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: employer.name,
-    url: employer.website || undefined,
-    logo: employer.logo_url || undefined,
-    description: employer.description || undefined,
-    address: {
-      "@type": "PostalAddress",
-      addressCountry: "AU",
-    },
-  } : null;
+  const orgSchema = buildOrganizationSchema(employer);
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: "Home", url: "/" },
+    { name: "Employers", url: "/employers" },
+    { name: employer.name },
+  ]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {jsonLd && <JsonLd data={jsonLd} />}
+      <JsonLd data={orgSchema} />
+      <JsonLd data={breadcrumbSchema} />
 
       <Breadcrumbs items={[
         { label: "Employers", href: "/employers" },
