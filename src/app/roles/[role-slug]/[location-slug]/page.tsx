@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
 import { MH_ROLES, AU_LOCATIONS } from "@/constants";
-import { shouldNoindex } from "@/lib/noindex";
+
 import { getJobCountByRoleAndLocation, getJobsByRoleAndLocation } from "@/lib/jobs";
 import { getRoleLocationContent } from "@/content/role-location";
 import { formatSalary } from "@/lib/utils";
@@ -36,15 +36,8 @@ export async function generateMetadata({
     // DB not available at build time
   }
 
-  // Pages with editorial content have ~200 words regardless of listings
-  const contentWordCount = content ? 200 : 0;
-
-  const noindex = shouldNoindex({
-    listingsCount,
-    historicalCount: 0,
-    contentWordCount,
-    hasCustomMeta: false,
-  });
+  const hasContent = !!content;
+  const noindex = !hasContent && listingsCount < 3;
 
   return {
     title: `${role.name} jobs in ${loc.name}`,

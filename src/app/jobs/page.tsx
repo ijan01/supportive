@@ -10,12 +10,23 @@ import SaveSearchButton from "@/components/SaveSearchButton";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Browse roles",
-  description: "Browse mental health and supportive services roles across Australia. Filter by role type, location, and employment type.",
-};
-
 const PAGE_SIZE = 20;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const hasFilters = params.search || params.location || params.category || params.job_type || params.benefits;
+
+  return {
+    title: "Browse roles",
+    description: "Browse mental health and supportive services roles across Australia. Filter by role type, location, and employment type.",
+    alternates: { canonical: "/jobs" },
+    ...(hasFilters && { robots: { index: false, follow: true } }),
+  };
+}
 
 export default async function JobsPage({
   searchParams,

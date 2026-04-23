@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getJobs, getJobCount } from "@/lib/jobs";
 import { getEmployerBySlug } from "@/lib/employers";
@@ -51,7 +52,8 @@ export default async function EmployerProfilePage({
 }) {
   const p = await params;
   const employer = await getEmployerBySlug(p["employer-slug"]);
-  const name = employer?.name || formatEmployerName(p["employer-slug"]);
+  if (!employer) notFound();
+  const name = employer.name;
 
   const [jobs, total] = await Promise.all([
     getJobs({ search: name, limit: 50 }),
