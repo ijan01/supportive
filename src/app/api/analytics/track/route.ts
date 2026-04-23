@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { trackJobEvent } from "@/lib/jobs";
+import { trackJobEvent, getJobByIdAny } from "@/lib/jobs";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -13,6 +13,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid event type" }, { status: 400 });
   }
 
-  await trackJobEvent(Number(job_id), event_type);
+  const id = Number(job_id);
+  if (!Number.isFinite(id) || id <= 0) {
+    return NextResponse.json({ error: "Invalid job_id" }, { status: 400 });
+  }
+
+  const job = await getJobByIdAny(id);
+  if (!job) {
+    return NextResponse.json({ error: "Job not found" }, { status: 404 });
+  }
+
+  await trackJobEvent(id, event_type);
   return NextResponse.json({ ok: true });
 }

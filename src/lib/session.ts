@@ -2,7 +2,15 @@ import { cookies } from "next/headers";
 import { decode, getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 
-const SECRET = process.env.NEXTAUTH_SECRET || "development-secret-change-in-production";
+function getSecret(): string {
+  const s = process.env.NEXTAUTH_SECRET;
+  if (!s && typeof window === "undefined" && process.env.NODE_ENV === "production" && !process.env.NEXT_PHASE) {
+    console.warn("[session] NEXTAUTH_SECRET is not set — using development fallback");
+  }
+  return s || "development-secret-change-in-production";
+}
+
+const SECRET = getSecret();
 
 function cookieName() {
   return process.env.NODE_ENV === "production"

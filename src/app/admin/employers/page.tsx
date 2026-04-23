@@ -15,7 +15,12 @@ export default async function AdminEmployersPage() {
         <span className="text-slate-300">&rsaquo;</span>
         <span className="text-slate-500">Employers</span>
       </div>
-      <h1 className="text-2xl font-extrabold text-slate-900 mb-6">Employers ({employers.length})</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-extrabold text-slate-900">Employers ({employers.length})</h1>
+        <Link href="/admin/employers/import" className="px-4 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
+          Bulk import
+        </Link>
+      </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
