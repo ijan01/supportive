@@ -164,21 +164,43 @@ describe("classifyJob", () => {
 });
 
 describe("classifyJobStatus", () => {
-  it("returns active for high confidence", () => {
+  it("returns active for high confidence (>= 0.6)", () => {
+    assert.equal(classifyJobStatus(0.6), "active");
     assert.equal(classifyJobStatus(0.7), "active");
     assert.equal(classifyJobStatus(0.9), "active");
     assert.equal(classifyJobStatus(1.0), "active");
   });
 
-  it("returns review_queue for medium confidence", () => {
+  it("returns review_queue for medium confidence (>= 0.3, < 0.6)", () => {
+    assert.equal(classifyJobStatus(0.3), "review_queue");
     assert.equal(classifyJobStatus(0.4), "review_queue");
-    assert.equal(classifyJobStatus(0.6), "review_queue");
-    assert.equal(classifyJobStatus(0.69), "review_queue");
+    assert.equal(classifyJobStatus(0.5), "review_queue");
+    assert.equal(classifyJobStatus(0.59), "review_queue");
   });
 
-  it("returns rejected for low confidence", () => {
+  it("returns rejected for low confidence (< 0.3)", () => {
     assert.equal(classifyJobStatus(0.0), "rejected");
-    assert.equal(classifyJobStatus(0.3), "rejected");
-    assert.equal(classifyJobStatus(0.39), "rejected");
+    assert.equal(classifyJobStatus(0.1), "rejected");
+    assert.equal(classifyJobStatus(0.29), "rejected");
+  });
+});
+
+describe("classifyJob – disqualifying terms title-only", () => {
+  it("does NOT disqualify when disqualifying term is only in the description", () => {
+    const result = classifyJob(
+      "Clinical Psychologist",
+      "Work alongside nurses and social workers in a multidisciplinary mental health team. AHPRA clinical psychology endorsement required."
+    );
+    assert.ok(result, "should classify even though description mentions nurses/social workers");
+    assert.equal(result.roleSlug, "clinical-psychologist");
+  });
+
+  it("disqualifies when disqualifying term is in the title", () => {
+    const result = classifyJob(
+      "Social Worker — Mental Health Team",
+      "AHPRA clinical psychology endorsement. Clinical psychologist assessment."
+    );
+    assert.ok(result);
+    assert.notEqual(result.roleSlug, "clinical-psychologist");
   });
 });

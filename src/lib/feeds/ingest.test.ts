@@ -77,4 +77,50 @@ describe("parseAdzunaLocation", () => {
     assert.equal(result.state, "NSW");
     assert.equal(result.isRemote, false);
   });
+
+  it("resolves state from abbreviation in display name", () => {
+    const result = parseAdzunaLocation(
+      ["Australia"],
+      "Somewhere in NSW"
+    );
+    assert.equal(result.state, "NSW");
+  });
+
+  it("resolves state from full name in display name", () => {
+    const result = parseAdzunaLocation(
+      ["Australia"],
+      "Rural Western Australia"
+    );
+    assert.equal(result.state, "WA");
+  });
+
+  it("resolves city alias for Sunshine Coast", () => {
+    const result = parseAdzunaLocation(
+      [],
+      "Sunshine Coast"
+    );
+    assert.equal(result.state, "QLD");
+  });
+
+  it("resolves city alias for Broome", () => {
+    const result = parseAdzunaLocation(
+      [],
+      "Broome, WA"
+    );
+    assert.equal(result.state, "WA");
+  });
+
+  it("handles ACT correctly", () => {
+    const result = parseAdzunaLocation(
+      ["Australia", "Australian Capital Territory", "Canberra"],
+      "Canberra"
+    );
+    assert.equal(result.state, "ACT");
+    assert.equal(result.city, "Canberra");
+  });
+
+  it("handles empty area gracefully", () => {
+    const result = parseAdzunaLocation([], "Unknown Location");
+    assert.equal(result.isRemote, false);
+  });
 });

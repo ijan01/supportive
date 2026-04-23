@@ -21,6 +21,15 @@ export interface IngestOptions {
   maxPages?: number;
 }
 
+interface PreparedJob {
+  job: AdzunaJob;
+  classification: { roleSlug: string; confidence: number };
+  parsedLocation: ReturnType<typeof parseAdzunaLocation>;
+  status: "active" | "review_queue" | "rejected";
+}
+
+const BATCH_SIZE = 20;
+
 function mapEmploymentType(
   contractTime: string | null,
   contractType: string | null
@@ -62,7 +71,6 @@ function passesQualityGates(
     return { passes: false, status: "rejected" };
   }
 
-  // Missing employer or location: queue for review instead of rejecting
   if (!hasEmployer || !locationResolved) {
     return { passes: false, status: "review_queue" };
   }
@@ -78,12 +86,8 @@ async function getExistingExternalIds(): Promise<Set<string>> {
   return new Set(result.rows.map((r) => r.external_id as string));
 }
 
-async function insertFeedJob(
-  job: AdzunaJob,
-  classification: { roleSlug: string; confidence: number },
-  parsedLocation: ReturnType<typeof parseAdzunaLocation>,
-  status: "active" | "review_queue" | "rejected"
-): Promise<void> {
+async function insertFeedJob(prepared: PreparedJob): Promise<void> {
+  const { job, classification, parsedLocation, status } = prepared;
   const employmentType = mapEmploymentType(job.contract_time, job.contract_type);
   const jobTypeDisplay = mapJobTypeDisplay(employmentType);
   const role = MH_ROLES.find((r) => r.slug === classification.roleSlug);
@@ -127,6 +131,19 @@ async function insertFeedJob(
       ${JSON.stringify(job)}
     )
   `;
+}
+
+async function insertBatch(batch: PreparedJob[]): Promise<number> {
+  let failed = 0;
+  await Promise.all(
+    batch.map((p) =>
+      insertFeedJob(p).catch((err) => {
+        console.error(`[ingest] insert failed for "${p.job.title}": ${err}`);
+        failed++;
+      })
+    )
+  );
+  return failed;
 }
 
 async function createFeedRun(): Promise<number> {
@@ -177,6 +194,7 @@ export async function ingestAdzuna(options: IngestOptions): Promise<IngestStats>
 
   try {
     const existingIds = options.dryRun ? new Set<string>() : await getExistingExternalIds();
+    const pendingInserts: PreparedJob[] = [];
 
     for (const query of options.queries) {
       let allJobs: AdzunaJob[];
@@ -194,41 +212,41 @@ export async function ingestAdzuna(options: IngestOptions): Promise<IngestStats>
       for (const job of allJobs) {
         stats.totalFetched++;
 
-        // Stage 1: Deduplicate
         const externalId = "adzuna:" + job.id;
         if (existingIds.has(externalId)) {
           stats.totalDeduped++;
           continue;
         }
 
-        // Stage 2: Eligibility filter
         if (!isEligible(job.title, job.description)) {
           stats.totalFiltered++;
           continue;
         }
 
-        // Stage 3: Role classification
         const classification = classifyJob(job.title, job.description);
         stats.totalClassified++;
 
-        // Stage 4: Location parsing
         const parsedLocation = parseAdzunaLocation(
           job.location.area,
           job.location.display_name
         );
         const locationResolved = !!(parsedLocation.state || parsedLocation.isRemote);
 
-        // Stage 5: Quality gates
         const { status } = passesQualityGates(job, classification, locationResolved);
 
         if (status === "active") stats.totalPublished++;
         else if (status === "review_queue") stats.totalQueued++;
         else stats.totalRejected++;
 
-        // Stage 6: Write to DB (unless dry run)
         if (!options.dryRun && classification) {
           existingIds.add(externalId);
-          await insertFeedJob(job, classification, parsedLocation, status);
+          pendingInserts.push({ job, classification, parsedLocation, status });
+
+          if (pendingInserts.length >= BATCH_SIZE) {
+            const batch = pendingInserts.splice(0, BATCH_SIZE);
+            const failed = await insertBatch(batch);
+            if (failed > 0) stats.errors.push(`${failed} insert(s) failed in batch`);
+          }
         }
 
         if (options.dryRun) {
@@ -237,6 +255,11 @@ export async function ingestAdzuna(options: IngestOptions): Promise<IngestStats>
           );
         }
       }
+    }
+
+    if (pendingInserts.length > 0) {
+      const failed = await insertBatch(pendingInserts);
+      if (failed > 0) stats.errors.push(`${failed} insert(s) failed in final batch`);
     }
 
     if (runId) await completeFeedRun(runId, stats);
