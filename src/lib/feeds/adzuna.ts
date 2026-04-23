@@ -108,7 +108,7 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
 
 export async function searchAdzunaAllPages(
   params: AdzunaSearchParams,
-  maxPages = 5
+  maxPages = 10
 ): Promise<{ jobs: AdzunaJob[]; totalAvailable: number; pagesUsed: number }> {
   const allJobs: AdzunaJob[] = [];
   let totalAvailable = 0;

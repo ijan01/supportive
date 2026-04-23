@@ -53,13 +53,18 @@ function passesQualityGates(
   const statusFromConfidence = classifyJobStatus(classification.confidence);
   const hasEmployer = !!job.company?.display_name?.trim();
   const hasValidUrl = !!job.redirect_url?.startsWith("http");
-  const hasDescription = (job.description?.length ?? 0) >= 200;
+  const hasDescription = (job.description?.length ?? 0) >= 50;
   const postedDate = new Date(job.created);
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const isRecent = postedDate >= thirtyDaysAgo;
+  const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
+  const isRecent = postedDate >= fortyFiveDaysAgo;
 
-  if (!hasEmployer || !locationResolved || !hasValidUrl || !hasDescription || !isRecent) {
+  if (!hasValidUrl || !hasDescription || !isRecent) {
     return { passes: false, status: "rejected" };
+  }
+
+  // Missing employer or location: queue for review instead of rejecting
+  if (!hasEmployer || !locationResolved) {
+    return { passes: false, status: "review_queue" };
   }
 
   return { passes: statusFromConfidence === "active", status: statusFromConfidence };

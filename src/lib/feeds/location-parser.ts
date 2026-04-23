@@ -171,6 +171,24 @@ export function parseAdzunaLocation(area: string[], displayName: string): Parsed
     state = CITY_TO_STATE[city.toLowerCase()] ?? CITY_ALIASES[city.toLowerCase()] ?? null;
   }
 
+  // Last resort: check if display_name contains a state abbreviation or full name
+  if (!state) {
+    for (const abbr of AU_STATES) {
+      if (lowerDisplay.includes(` ${abbr.toLowerCase()}`) || lowerDisplay.endsWith(abbr.toLowerCase())) {
+        state = abbr;
+        break;
+      }
+    }
+    if (!state) {
+      for (const [fullName, abbr] of Object.entries(STATE_NAME_MAP)) {
+        if (lowerDisplay.includes(fullName)) {
+          state = abbr;
+          break;
+        }
+      }
+    }
+  }
+
   // Build display name matching AU_LOCATIONS format
   let matchedDisplayName = displayName;
   if (city && state) {

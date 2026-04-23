@@ -4,13 +4,13 @@ import { BlogPost } from "./types";
 export async function getBlogPosts(): Promise<BlogPost[]> {
   await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts WHERE published_at IS NOT NULL ORDER BY published_at DESC`;
-  return result.rows as BlogPost[];
+  return result.rows as unknown as BlogPost[];
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
   await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts WHERE slug = ${slug} AND published_at IS NOT NULL`;
-  return result.rows[0] as BlogPost | undefined;
+  return result.rows[0] as unknown as BlogPost | undefined;
 }
 
 export async function getAllBlogSlugs(): Promise<string[]> {
@@ -22,7 +22,7 @@ export async function getAllBlogSlugs(): Promise<string[]> {
 export async function getAllBlogPostsAdmin(): Promise<BlogPost[]> {
   await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts ORDER BY created_at DESC`;
-  return result.rows as BlogPost[];
+  return result.rows as unknown as BlogPost[];
 }
 
 export interface BlogPostAdminRow extends BlogPost {
@@ -66,13 +66,13 @@ export async function getBlogPostsAdminPaginated(
 export async function getBlogPostById(id: number): Promise<BlogPost | undefined> {
   await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts WHERE id = ${id}`;
-  return result.rows[0] as BlogPost | undefined;
+  return result.rows[0] as unknown as BlogPost | undefined;
 }
 
 export async function getBlogPostBySlugAdmin(slug: string): Promise<BlogPost | undefined> {
   await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts WHERE slug = ${slug}`;
-  return result.rows[0] as BlogPost | undefined;
+  return result.rows[0] as unknown as BlogPost | undefined;
 }
 
 export async function createBlogPost(post: {
@@ -93,7 +93,7 @@ export async function createBlogPost(post: {
             ${post.primary_keyword || null}, ${post.secondary_keywords || null}, ${publishedAt})
     RETURNING *
   `;
-  return result.rows[0] as BlogPost;
+  return result.rows[0] as unknown as BlogPost;
 }
 
 export async function updateBlogPost(id: number, post: {
@@ -125,7 +125,7 @@ export async function updateBlogPost(id: number, post: {
     WHERE id = ${id}
     RETURNING *
   `;
-  return result.rows[0] as BlogPost;
+  return result.rows[0] as unknown as BlogPost;
 }
 
 export async function deleteBlogPost(id: number): Promise<void> {

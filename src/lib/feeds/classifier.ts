@@ -13,16 +13,26 @@ const ELIGIBILITY_TERMS = [
   "counsellor", "counselling", "counselor", "counseling",
   "psychotherapist", "psychotherapy",
   "mental health nurse", "MH nurse", "psychiatric nurse",
-  "mental health social work",
+  "registered nurse.*mental", "RN.*mental",
+  "mental health social work", "social worker.*mental",
   "AOD", "alcohol and other drugs", "drug and alcohol", "D&A worker",
-  "NDIS mental health", "NDIS support worker",
-  "youth mental health", "CAMHS",
+  "substance use", "addiction",
+  "NDIS.*mental", "NDIS.*psychosocial", "NDIS support worker",
+  "psychosocial", "psychosocial recovery",
+  "youth mental health", "CAMHS", "headspace",
   "eating disorder", "disordered eating",
   "suicide prevention", "postvention",
-  "trauma", "PTSD specialist",
+  "trauma", "PTSD",
   "perinatal mental health",
   "art therapist", "music therapist", "play therapist",
-  "occupational therapist.*mental health",
+  "occupational therapist.*mental",
+  "behaviour support", "behavior support", "positive behaviour",
+  "wellbeing", "well-being",
+  "community mental health",
+  "clinical supervision",
+  "recovery.oriented",
+  "case manager.*mental", "care coordinator.*mental",
+  "support worker.*mental", "support worker.*psych",
 ];
 
 function matchesAny(text: string, patterns: string[]): boolean {
@@ -43,7 +53,10 @@ function scoreRole(
   description: string,
   keywords: RoleKeywords
 ): number {
-  if (matchesAny(title, keywords.disqualifying) || matchesAny(description, keywords.disqualifying)) {
+  // Only check disqualifying terms in the TITLE, not the description.
+  // Descriptions often mention other disciplines in passing
+  // (e.g. "work alongside nurses and social workers").
+  if (matchesAny(title, keywords.disqualifying)) {
     return 0;
   }
 
@@ -84,7 +97,7 @@ export function classifyJob(
 }
 
 export function classifyJobStatus(confidence: number): "active" | "review_queue" | "rejected" {
-  if (confidence >= 0.7) return "active";
-  if (confidence >= 0.4) return "review_queue";
+  if (confidence >= 0.6) return "active";
+  if (confidence >= 0.3) return "review_queue";
   return "rejected";
 }
