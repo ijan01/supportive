@@ -1,14 +1,22 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { encode } from "next-auth/jwt";
 import { createUser, getUserByEmail } from "@/lib/users";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function registerAction(
   _prev: { error: string } | null,
   formData: FormData
 ): Promise<{ error: string } | null> {
+  const hdrs = await headers();
+  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = rateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
+  if (!rl.ok) {
+    return { error: "Too many registration attempts. Please try again later." };
+  }
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const name = formData.get("name") as string;
