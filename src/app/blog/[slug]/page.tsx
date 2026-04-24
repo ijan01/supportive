@@ -5,11 +5,9 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 import BlogContent from "./content";
 import { buildBlogPostingSchema, buildBreadcrumbSchema } from "@/lib/jsonld";
+import { SITE_URL } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
-
 export async function generateMetadata({
   params,
 }: {
@@ -34,7 +32,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.published_at || undefined,
       authors: [post.author],
-      url: `${siteUrl}/blog/${post.slug}`,
+      url: `${SITE_URL}/blog/${post.slug}`,
       images: [
         {
           url: "/opengraph-image",

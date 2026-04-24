@@ -1,8 +1,7 @@
-import { sql, ensureInitialized } from "./db";
+import { sql } from "./db";
 import { SavedSearch } from "./types";
 
 export async function getSavedSearches(userId: number): Promise<SavedSearch[]> {
-  await ensureInitialized();
   const result = await sql`
     SELECT * FROM saved_searches WHERE user_id = ${userId} ORDER BY created_at DESC
   `;
@@ -13,7 +12,6 @@ export async function createSavedSearch(
   userId: number,
   data: { name: string; search?: string; location?: string; category?: string; job_type?: string }
 ): Promise<SavedSearch> {
-  await ensureInitialized();
   const result = await sql`
     INSERT INTO saved_searches (user_id, name, search, location, category, job_type)
     VALUES (${userId}, ${data.name}, ${data.search || null}, ${data.location || null}, ${data.category || null}, ${data.job_type || null})
@@ -23,12 +21,10 @@ export async function createSavedSearch(
 }
 
 export async function deleteSavedSearch(id: number, userId: number): Promise<void> {
-  await ensureInitialized();
   await sql`DELETE FROM saved_searches WHERE id = ${id} AND user_id = ${userId}`;
 }
 
 export async function getAllSavedSearches(): Promise<(SavedSearch & { email: string; user_name: string })[]> {
-  await ensureInitialized();
   const result = await sql`
     SELECT ss.*, u.email, u.name AS user_name
     FROM saved_searches ss

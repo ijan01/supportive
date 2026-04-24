@@ -1,26 +1,22 @@
-import { sql, ensureInitialized } from "./db";
+import { sql } from "./db";
 import { BlogPost } from "./types";
 
 export async function getBlogPosts(): Promise<BlogPost[]> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts WHERE published_at IS NOT NULL ORDER BY published_at DESC`;
   return result.rows as unknown as BlogPost[];
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts WHERE slug = ${slug} AND published_at IS NOT NULL`;
   return result.rows[0] as unknown as BlogPost | undefined;
 }
 
 export async function getAllBlogSlugs(): Promise<Array<{ slug: string; published_at: string }>> {
-  await ensureInitialized();
   const result = await sql`SELECT slug, published_at FROM blog_posts WHERE published_at IS NOT NULL`;
   return result.rows as Array<{ slug: string; published_at: string }>;
 }
 
 export async function getAllBlogPostsAdmin(): Promise<BlogPost[]> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts ORDER BY created_at DESC`;
   return result.rows as unknown as BlogPost[];
 }
@@ -37,7 +33,6 @@ export async function getBlogPostsAdminPaginated(
   page: number,
   perPage: number
 ): Promise<{ posts: BlogPostAdminRow[]; total: number }> {
-  await ensureInitialized();
   const offset = (page - 1) * perPage;
 
   const [rowsResult, countResult] = await Promise.all([
@@ -64,13 +59,11 @@ export async function getBlogPostsAdminPaginated(
 }
 
 export async function getBlogPostById(id: number): Promise<BlogPost | undefined> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts WHERE id = ${id}`;
   return result.rows[0] as unknown as BlogPost | undefined;
 }
 
 export async function getBlogPostBySlugAdmin(slug: string): Promise<BlogPost | undefined> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM blog_posts WHERE slug = ${slug}`;
   return result.rows[0] as unknown as BlogPost | undefined;
 }
@@ -85,7 +78,6 @@ export async function createBlogPost(post: {
   primary_keyword?: string | null;
   secondary_keywords?: string | null;
 }): Promise<BlogPost> {
-  await ensureInitialized();
   const publishedAt = post.published ? new Date().toISOString() : null;
   const result = await sql`
     INSERT INTO blog_posts (title, slug, content, excerpt, author, primary_keyword, secondary_keywords, published_at)
@@ -106,7 +98,6 @@ export async function updateBlogPost(id: number, post: {
   primary_keyword?: string | null;
   secondary_keywords?: string | null;
 }): Promise<BlogPost> {
-  await ensureInitialized();
   const existing = await getBlogPostById(id);
   let publishedAt: string | null = null;
   if (post.published) {
@@ -129,6 +120,5 @@ export async function updateBlogPost(id: number, post: {
 }
 
 export async function deleteBlogPost(id: number): Promise<void> {
-  await ensureInitialized();
   await sql`DELETE FROM blog_posts WHERE id = ${id}`;
 }

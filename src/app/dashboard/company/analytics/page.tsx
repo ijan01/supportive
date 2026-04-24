@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getJobsByUserId } from "@/lib/jobs";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,6 @@ export default async function EmployerAnalyticsPage() {
   const userId = Number(session.user.id);
   const jobs = await getJobsByUserId(userId);
 
-  await ensureInitialized();
   const appCount = await sql`
     SELECT COUNT(*)::integer AS count FROM applications a
     JOIN jobs j ON j.id = a.job_id WHERE j.user_id = ${userId}

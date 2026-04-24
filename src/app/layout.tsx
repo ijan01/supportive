@@ -6,13 +6,12 @@ import Footer from "@/components/Footer";
 import Script from "next/script";
 import JsonLd from "@/components/JsonLd";
 import { buildWebSiteSchema } from "@/lib/jsonld";
+import { SITE_URL } from "@/lib/config";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
 
 export const metadata: Metadata = {
   title: {
@@ -20,14 +19,14 @@ export const metadata: Metadata = {
     template: "%s | Supportive",
   },
   description: "Mental health and supportive services careers, Australia-wide. Browse clinical, community, AOD, peer work, and NDIS roles posted by mission-aligned employers.",
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     title: "Supportive — Mental health and supportive services careers",
     description: "Mental health and supportive services careers, Australia-wide. Browse clinical, community, AOD, peer work, and NDIS roles.",
     type: "website",
     siteName: "Supportive",
     locale: "en_AU",
-    url: siteUrl,
+    url: SITE_URL,
     images: [
       {
         url: "/opengraph-image",
@@ -55,7 +54,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: siteUrl,
+    canonical: SITE_URL,
   },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION || undefined,

@@ -4,6 +4,7 @@ import { getSessionFromRequest } from "@/lib/session";
 import { getEmployerByUserId } from "@/lib/employers";
 import { JobFilters } from "@/lib/types";
 import { LISTING_TIERS } from "@/constants";
+import { SITE_URL } from "@/lib/config";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -72,7 +73,6 @@ export async function POST(request: NextRequest) {
 
       const Stripe = (await import("stripe")).default;
       const stripe = new Stripe(stripeKey);
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
 
       const checkoutSession = await stripe.checkout.sessions.create({
         mode: "payment",
@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
           employer_id: employer ? String(employer.id) : "",
           listing_tier: tier,
         },
-        success_url: `${siteUrl}/dashboard/company?posted=1&tier=${tier}`,
-        cancel_url: `${siteUrl}/dashboard/company?cancelled=1`,
+        success_url: `${SITE_URL}/dashboard/company?posted=1&tier=${tier}`,
+        cancel_url: `${SITE_URL}/dashboard/company?cancelled=1`,
       });
 
       // Store the session ID on the job for webhook matching

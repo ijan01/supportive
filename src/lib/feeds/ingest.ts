@@ -1,4 +1,4 @@
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { searchAdzunaAllPages, AdzunaJob, AdzunaSearchParams } from "./adzuna";
 import { classifyJob, classifyJobStatus, isEligible } from "./classifier";
 import { parseAdzunaLocation } from "./location-parser";
@@ -79,7 +79,6 @@ function passesQualityGates(
 }
 
 async function getExistingExternalIds(): Promise<Set<string>> {
-  await ensureInitialized();
   const result = await sql`
     SELECT external_id FROM jobs WHERE source = 'adzuna' AND external_id IS NOT NULL
   `;
@@ -147,7 +146,6 @@ async function insertBatch(batch: PreparedJob[]): Promise<number> {
 }
 
 async function createFeedRun(): Promise<number> {
-  await ensureInitialized();
   const result = await sql`
     INSERT INTO feed_runs (status) VALUES ('running') RETURNING id
   `;

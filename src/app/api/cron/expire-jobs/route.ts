@@ -1,21 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
+import { requireCronAuth } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-  }
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
-  }
-
-  await ensureInitialized();
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   // 1. Expire listings past their valid_through date
   const expiredResult = await sql`

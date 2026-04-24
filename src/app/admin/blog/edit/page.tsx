@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getBlogPostById, getBlogPostBySlugAdmin } from "@/lib/blog";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
 import BlogPostForm from "@/components/BlogPostForm";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,6 @@ export default async function EditBlogPostPage({
 
   if (!post) notFound();
 
-  await ensureInitialized();
   const cpRow = await sql`SELECT id FROM content_plan WHERE slug = ${post.slug} LIMIT 1`;
   const contentPlanId = cpRow.rows[0]?.id as number | undefined;
 

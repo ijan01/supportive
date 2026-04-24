@@ -9,8 +9,8 @@ import JsonLd from "@/components/JsonLd";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { buildOrganizationSchema, buildBreadcrumbSchema } from "@/lib/jsonld";
 import { JobWithEmployer } from "@/lib/types";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
+import { SITE_URL } from "@/lib/config";
+import EmptyJobsState from "@/components/EmptyJobsState";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +46,7 @@ export async function generateMetadata({
       title: `${name} Jobs and Careers`,
       description: `Browse open mental health roles at ${name} on Supportive.`,
       type: "website",
-      url: `${siteUrl}/employers/${p["employer-slug"]}`,
+      url: `${SITE_URL}/employers/${p["employer-slug"]}`,
       images: [{ url: ogImage, width: 1200, height: 630, alt: `${name} — mental health careers` }],
     },
     twitter: {
@@ -200,11 +200,7 @@ export default async function EmployerProfilePage({
           {jobs.map((job) => <JobCard key={job.id} job={job} />)}
         </div>
       ) : (
-        <div className="bg-lavender border border-violet-100 rounded-2xl p-8 mb-8 text-center">
-          <p className="text-slate-700 font-medium mb-2">No current openings at {name}</p>
-          <p className="text-slate-500 text-sm mb-4">New roles are added daily. Browse all current roles in the meantime.</p>
-          <Link href="/jobs" className="inline-block px-6 py-2.5 rounded-full bg-violet-600 text-white font-medium hover:bg-violet-700 transition-all text-sm">Browse all roles</Link>
-        </div>
+        <EmptyJobsState label={`No current openings at ${name}`} />
       )}
 
       <div className="flex gap-3 text-sm">

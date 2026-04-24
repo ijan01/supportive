@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/session";
 import { createBlogPost, updateBlogPost, deleteBlogPost } from "@/lib/blog";
-import { sql, ensureInitialized } from "@/lib/db";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
-
+import { sql } from "@/lib/db";
+import { SITE_URL } from "@/lib/config";
 async function syncContentPlanPublished(slug: string, published: boolean) {
-  await ensureInitialized();
   if (published) {
     await sql`
       UPDATE content_plan SET

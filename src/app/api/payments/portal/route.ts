@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/session";
 import { getEmployerByUserId } from "@/lib/employers";
+import { SITE_URL } from "@/lib/config";
 
 export async function POST(request: NextRequest) {
   const session = await getSessionFromRequest(request);
@@ -20,11 +21,10 @@ export async function POST(request: NextRequest) {
 
   const Stripe = (await import("stripe")).default;
   const stripe = new Stripe(stripeKey);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
 
   const portalSession = await stripe.billingPortal.sessions.create({
     customer: employer.stripe_customer_id,
-    return_url: `${siteUrl}/dashboard/company`,
+    return_url: `${SITE_URL}/dashboard/company`,
   });
 
   return NextResponse.json({ ok: true, url: portalSession.url });

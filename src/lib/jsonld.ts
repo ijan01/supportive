@@ -1,7 +1,6 @@
 import { Job, BlogPost, Employer } from "./types";
 import { AU_LOCATIONS } from "@/constants";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
+import { SITE_URL } from "./config";
 
 const EMPLOYMENT_TYPE_MAP: Record<string, string> = {
   "Full-time": "FULL_TIME",

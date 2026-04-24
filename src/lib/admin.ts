@@ -1,4 +1,4 @@
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { UserRole } from "@/lib/types";
 
 export interface AdminStats {
@@ -11,7 +11,6 @@ export interface AdminStats {
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
-  await ensureInitialized();
   const [users, jobs, active, pending, apps, companies] = await Promise.all([
     sql`SELECT COUNT(*)::int AS count FROM users`,
     sql`SELECT COUNT(*)::int AS count FROM jobs`,
@@ -31,7 +30,6 @@ export async function getAdminStats(): Promise<AdminStats> {
 }
 
 export async function getAllUsers() {
-  await ensureInitialized();
   const result = await sql`
     SELECT u.id, u.email, u.name, u.role, u.company_name, u.created_at,
       (SELECT COUNT(*)::int FROM jobs WHERE user_id = u.id) AS job_count
@@ -50,7 +48,6 @@ export async function getAllUsers() {
 }
 
 export async function updateUserRole(userId: number, role: UserRole): Promise<void> {
-  await ensureInitialized();
   await sql`UPDATE users SET role = ${role} WHERE id = ${userId}`;
 }
 
@@ -61,7 +58,6 @@ export async function getAllJobsAdmin(filters?: {
   page?: number;
   limit?: number;
 }) {
-  await ensureInitialized();
   const page = filters?.page ?? 1;
   const limit = filters?.limit ?? 50;
   const offset = (page - 1) * limit;
@@ -94,19 +90,16 @@ export async function getAllJobsAdmin(filters?: {
 }
 
 export async function deleteJob(jobId: number): Promise<void> {
-  await ensureInitialized();
   await sql`DELETE FROM applications WHERE job_id = ${jobId}`;
   await sql`DELETE FROM saved_jobs WHERE job_id = ${jobId}`;
   await sql`DELETE FROM jobs WHERE id = ${jobId}`;
 }
 
 export async function updateJobStatus(jobId: number, status: string): Promise<void> {
-  await ensureInitialized();
   await sql`UPDATE jobs SET status = ${status}, updated_at = NOW() WHERE id = ${jobId}`;
 }
 
 export async function getCompanies() {
-  await ensureInitialized();
   const result = await sql`
     SELECT u.id, u.name, u.email, u.company_name, u.created_at,
       (SELECT COUNT(*)::int FROM jobs WHERE user_id = u.id) AS job_count,

@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { SITE_URL } from "@/lib/config";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -20,7 +21,7 @@ export async function sendNewApplicationEmail(options: {
   }
 
   const { employerEmail, employerName, applicantName, applicantEmail, jobTitle, jobId } = options;
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au"}/dashboard/company`;
+  const dashboardUrl = `${SITE_URL}/dashboard/company`;
 
   await resend.emails.send({
     from: FROM_ADDRESS,
@@ -52,7 +53,6 @@ export async function sendExpiryWarningEmail(
   email: string, name: string, jobTitle: string, jobId: number, views: number, clicks: number
 ): Promise<void> {
   if (!resend) { console.warn("[email] RESEND_API_KEY not set — skipping expiry warning"); return; }
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
   await resend.emails.send({
     from: FROM_ADDRESS, to: email,
     subject: `Your "${jobTitle}" listing expires in 7 days`,
@@ -63,7 +63,7 @@ export async function sendExpiryWarningEmail(
           <p>Hi ${name},</p>
           <p>Your listing <strong>${jobTitle}</strong> expires in 7 days.</p>
           <p style="color: #64748b; font-size: 14px;">So far your listing has received <strong>${views} views</strong> and <strong>${clicks} apply clicks</strong>.</p>
-          <p><a href="${siteUrl}/dashboard/company?renew=${jobId}" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">Renew listing</a></p>
+          <p><a href="${SITE_URL}/dashboard/company?renew=${jobId}" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">Renew listing</a></p>
         </div>
       </div>
     `.trim(),
@@ -74,7 +74,6 @@ export async function sendExpiryNotificationEmail(
   email: string, name: string, jobTitle: string, jobId: number
 ): Promise<void> {
   if (!resend) { console.warn("[email] RESEND_API_KEY not set — skipping expiry notification"); return; }
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
   await resend.emails.send({
     from: FROM_ADDRESS, to: email,
     subject: `Your "${jobTitle}" listing has expired`,
@@ -84,8 +83,8 @@ export async function sendExpiryNotificationEmail(
         <div style="padding: 24px 0;">
           <p>Hi ${name},</p>
           <p>Your listing <strong>${jobTitle}</strong> has now expired.</p>
-          <p><a href="${siteUrl}/dashboard/company?renew=${jobId}" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">Reactivate this listing</a></p>
-          <p>Or <a href="${siteUrl}/dashboard/company/post-job" style="color: #7c3aed;">post a new listing</a>.</p>
+          <p><a href="${SITE_URL}/dashboard/company?renew=${jobId}" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">Reactivate this listing</a></p>
+          <p>Or <a href="${SITE_URL}/dashboard/company/post-job" style="color: #7c3aed;">post a new listing</a>.</p>
         </div>
       </div>
     `.trim(),
@@ -116,7 +115,6 @@ export async function sendFeaturedCancellationEmail(
   email: string, userName: string, orgName: string
 ): Promise<void> {
   if (!resend) { console.warn("[email] RESEND_API_KEY not set — skipping cancellation email"); return; }
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
   await resend.emails.send({
     from: FROM_ADDRESS, to: email,
     subject: "Your Featured Employer subscription has been cancelled",
@@ -127,7 +125,7 @@ export async function sendFeaturedCancellationEmail(
           <p>Hi ${userName},</p>
           <p>Your Featured Employer subscription for <strong>${orgName}</strong> has ended. Your employer profile will now appear in standard position in the directory.</p>
           <p>You can resubscribe at any time from your dashboard.</p>
-          <p><a href="${siteUrl}/dashboard/company" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">Go to dashboard</a></p>
+          <p><a href="${SITE_URL}/dashboard/company" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">Go to dashboard</a></p>
         </div>
       </div>
     `.trim(),
@@ -146,7 +144,6 @@ export async function sendJobAlertEmail(options: {
   }
 
   const { to, userName, searchName, jobs } = options;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
 
   const jobListHtml = jobs
     .slice(0, 10)
@@ -154,7 +151,7 @@ export async function sendJobAlertEmail(options: {
       (job) =>
         `<tr>
           <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
-            <a href="${siteUrl}/jobs/${job.id}" style="color: #7c3aed; font-weight: 600; text-decoration: none;">${job.title}</a>
+            <a href="${SITE_URL}/jobs/${job.id}" style="color: #7c3aed; font-weight: 600; text-decoration: none;">${job.title}</a>
             <br><span style="color: #64748b; font-size: 13px;">${job.company} · ${job.location}</span>
           </td>
         </tr>`
@@ -175,7 +172,7 @@ export async function sendJobAlertEmail(options: {
           <p>We found <strong>${jobs.length} new role${jobs.length !== 1 ? "s" : ""}</strong> matching your saved search "<strong>${searchName}</strong>":</p>
           <table style="width: 100%; border-collapse: collapse;">${jobListHtml}</table>
           <p style="margin-top: 20px;">
-            <a href="${siteUrl}/jobs" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">
+            <a href="${SITE_URL}/jobs" style="display: inline-block; padding: 10px 24px; background: #7c3aed; color: #fff; text-decoration: none; border-radius: 999px; font-weight: 600;">
               Browse all roles
             </a>
           </p>

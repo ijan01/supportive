@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ingestAdzuna } from "@/lib/feeds/ingest";
 import { ADZUNA_QUERIES } from "@/lib/feeds/queries";
+import { requireCronAuth } from "@/lib/api-auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-  }
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
-  }
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   const dryRun = request.nextUrl.searchParams.get("dry") === "1";
 

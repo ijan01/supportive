@@ -1,4 +1,4 @@
-import { sql, ensureInitialized } from "./db";
+import { sql } from "./db";
 
 export interface ContentPlanItem {
   id: number;
@@ -22,13 +22,11 @@ export interface ContentPlanItem {
 }
 
 export async function getAllContentPlanItems(): Promise<ContentPlanItem[]> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM content_plan ORDER BY article_number ASC`;
   return result.rows as ContentPlanItem[];
 }
 
 export async function getContentPlanItem(id: number): Promise<ContentPlanItem | undefined> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM content_plan WHERE id = ${id}`;
   return result.rows[0] as ContentPlanItem | undefined;
 }
@@ -49,7 +47,6 @@ export async function createContentPlanItem(item: {
   published_url?: string;
   notes?: string;
 }): Promise<ContentPlanItem> {
-  await ensureInitialized();
   const result = await sql`
     INSERT INTO content_plan (
       article_number, title, slug, content_type, target_keyword, secondary_keywords,
@@ -83,7 +80,6 @@ export async function updateContentPlanItem(id: number, item: {
   published_at?: string | null;
   notes?: string | null;
 }): Promise<ContentPlanItem> {
-  await ensureInitialized();
   const result = await sql`
     UPDATE content_plan SET
       title = COALESCE(${item.title ?? null}, title),
@@ -108,12 +104,10 @@ export async function updateContentPlanItem(id: number, item: {
 }
 
 export async function deleteContentPlanItem(id: number): Promise<void> {
-  await ensureInitialized();
   await sql`DELETE FROM content_plan WHERE id = ${id}`;
 }
 
 export async function getContentPlanStats(): Promise<Record<string, number>> {
-  await ensureInitialized();
   const result = await sql`
     SELECT status, COUNT(*)::int AS count FROM content_plan GROUP BY status
   `;

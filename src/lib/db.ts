@@ -1,11 +1,17 @@
-import { sql } from "../../db";
+import { sql as rawSql } from "../../db";
 import { initSchema } from "../../db/schema";
 
 let initPromise: Promise<void> | null = null;
 
-export async function ensureInitialized(): Promise<void> {
+function ensureInitialized(): Promise<void> {
   if (!initPromise) initPromise = initSchema();
-  await initPromise;
+  return initPromise;
 }
 
-export { sql };
+export async function sql(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ rows: any[]; rowCount: number }> {
+  return rawSql(strings, ...values);
+}

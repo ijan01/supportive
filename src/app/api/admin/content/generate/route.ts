@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/session";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { GoogleGenAI } from "@google/genai";
 import type { ContentPlanItem } from "@/lib/content-plan";
 
@@ -134,7 +134,6 @@ async function checkRateLimit(): Promise<boolean> {
 }
 
 async function buildBrief(article: ContentPlanItem) {
-  await ensureInitialized();
 
   let parentPillar: { title: string; slug: string | null } | null = null;
   let siblingClusters: Array<{ article_number: number; title: string; slug: string | null; status: string }> = [];
@@ -242,9 +241,6 @@ export async function POST(request: NextRequest) {
   if (!articleId) {
     return NextResponse.json({ error: "articleId is required" }, { status: 400 });
   }
-
-  await ensureInitialized();
-
   const allowed = await checkRateLimit();
   if (!allowed) {
     return NextResponse.json({ error: "Rate limit reached: maximum 3 article generations per hour. Please wait before generating another." }, { status: 429 });

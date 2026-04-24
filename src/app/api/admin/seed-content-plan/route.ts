@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/session";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
+import { SITE_URL } from "@/lib/config";
 
 export const maxDuration = 60;
 
@@ -141,9 +142,6 @@ export async function GET(request: NextRequest) {
   if (!session || session.user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  await ensureInitialized();
-
   const existing = await sql`SELECT COUNT(*)::int AS count FROM content_plan`;
   if (existing.rows[0].count > 0) {
     return NextResponse.json({ ok: false, message: `Table already has ${existing.rows[0].count} rows. Delete them first if you want to re-seed.` });
@@ -151,7 +149,6 @@ export async function GET(request: NextRequest) {
 
   let inserted = 0;
   for (const a of ARTICLES) {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
     await sql`
       INSERT INTO content_plan (
         article_number, title, slug, content_type, target_keyword,
@@ -159,7 +156,7 @@ export async function GET(request: NextRequest) {
       ) VALUES (
         ${a.n}, ${a.title}, ${a.slug || null}, ${a.type}, ${a.keyword},
         ${a.role}, ${a.parent}, ${a.status || "Planned"},
-        ${a.status === "Published" && a.slug ? siteUrl + "/blog" + a.slug : null},
+        ${a.status === "Published" && a.slug ? SITE_URL + "/blog" + a.slug : null},
         ${a.status === "Published" ? new Date().toISOString() : null}
       )
     `;

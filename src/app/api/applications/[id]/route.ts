@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/session";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
 
 const VALID_STATUSES = ["pending", "shortlisted", "contacted", "reviewed", "accepted", "rejected"];
 
@@ -23,9 +23,6 @@ export async function PATCH(
   if (!VALID_STATUSES.includes(status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
-
-  await ensureInitialized();
-
   // Verify ownership: the application must belong to a job owned by this employer
   const result = await sql`
     UPDATE applications SET status = ${status}

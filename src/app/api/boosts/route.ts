@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/session";
 import { getEmployerByUserId } from "@/lib/employers";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
+import { SITE_URL } from "@/lib/config";
 
 export async function POST(request: NextRequest) {
   const session = await getSessionFromRequest(request);
@@ -17,9 +18,6 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { job_id } = body;
   if (!job_id) return NextResponse.json({ error: "job_id is required" }, { status: 400 });
-
-  await ensureInitialized();
-
   const employer = await getEmployerByUserId(Number(session.user.id));
   if (!employer) return NextResponse.json({ error: "Create your employer profile first" }, { status: 400 });
 
@@ -37,9 +35,6 @@ export async function POST(request: NextRequest) {
 
   const Stripe = (await import("stripe")).default;
   const stripe = new Stripe(stripeKey);
-
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
-
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     currency: "aud",
@@ -57,8 +52,8 @@ export async function POST(request: NextRequest) {
       },
     ],
     metadata: { job_id: String(job_id), employer_id: String(employer.id), listing_tier: "sponsored" },
-    success_url: `${siteUrl}/dashboard/company?boost=success&job=${job_id}`,
-    cancel_url: `${siteUrl}/dashboard/company?boost=cancelled`,
+    success_url: `${SITE_URL}/dashboard/company?boost=success&job=${job_id}`,
+    cancel_url: `${SITE_URL}/dashboard/company?boost=cancelled`,
   });
 
   await sql`

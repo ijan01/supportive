@@ -1,10 +1,9 @@
-import { sql, ensureInitialized } from "./db";
+import { sql } from "./db";
 import { Job, JobFilters, CreateJobInput, JobWithApplicationCount, JobWithEmployer } from "./types";
 
 const PAGE_SIZE = 20;
 
 export async function getJobs(filters?: JobFilters & { benefits?: string[] }): Promise<JobWithEmployer[]> {
-  await ensureInitialized();
   const search = filters?.search ? `%${filters.search}%` : null;
   const location = filters?.location || null;
   const category = filters?.category || null;
@@ -33,7 +32,6 @@ export async function getJobs(filters?: JobFilters & { benefits?: string[] }): P
 }
 
 export async function getJobCount(filters?: Omit<JobFilters, "page" | "limit"> & { benefits?: string[] }): Promise<number> {
-  await ensureInitialized();
   const search = filters?.search ? `%${filters.search}%` : null;
   const location = filters?.location || null;
   const category = filters?.category || null;
@@ -54,7 +52,6 @@ export async function getJobCount(filters?: Omit<JobFilters, "page" | "limit"> &
 }
 
 export async function getJobById(id: number): Promise<JobWithEmployer | undefined> {
-  await ensureInitialized();
   const result = await sql`
     SELECT j.*,
       e.logo_url AS employer_logo_url,
@@ -69,7 +66,6 @@ export async function getJobById(id: number): Promise<JobWithEmployer | undefine
 }
 
 export async function getJobByIdAny(id: number): Promise<JobWithEmployer | undefined> {
-  await ensureInitialized();
   const result = await sql`
     SELECT j.*,
       e.logo_url AS employer_logo_url,
@@ -84,7 +80,6 @@ export async function getJobByIdAny(id: number): Promise<JobWithEmployer | undef
 }
 
 export async function getFeaturedJobs(limit = 6): Promise<JobWithEmployer[]> {
-  await ensureInitialized();
   const result = await sql`
     SELECT j.*,
       e.logo_url AS employer_logo_url,
@@ -104,7 +99,6 @@ export async function getJobsByRoleAndLocation(
   locationName: string,
   limit = 20
 ): Promise<JobWithEmployer[]> {
-  await ensureInitialized();
   const result = await sql`
     SELECT j.*,
       e.logo_url AS employer_logo_url,
@@ -122,7 +116,6 @@ export async function getJobsByRoleAndLocation(
 }
 
 export async function getJobsByUserId(userId: number): Promise<JobWithApplicationCount[]> {
-  await ensureInitialized();
   const result = await sql`
     SELECT j.*, COALESCE(COUNT(a.id), 0)::integer as application_count
     FROM jobs j
@@ -135,7 +128,6 @@ export async function getJobsByUserId(userId: number): Promise<JobWithApplicatio
 }
 
 export async function createJob(userId: number, input: CreateJobInput & { apply_method?: string; listing_tier?: string; stripe_session_id?: string }): Promise<Job> {
-  await ensureInitialized();
   const empResult = await sql`SELECT id, slug FROM employers WHERE user_id = ${userId}`;
   const employerId = empResult.rows[0]?.id as number | undefined ?? null;
   const employerSlug = empResult.rows[0]?.slug as string | undefined ?? null;
@@ -159,7 +151,6 @@ export async function createJob(userId: number, input: CreateJobInput & { apply_
 }
 
 export async function updateJob(id: number, userId: number, input: CreateJobInput & { apply_method?: string }): Promise<Job | null> {
-  await ensureInitialized();
   const applyMethod = input.apply_method === "internal" ? "internal" : "external";
   const applyUrl = applyMethod === "internal" ? null : (input.apply_url || null);
 
@@ -185,19 +176,16 @@ export async function updateJob(id: number, userId: number, input: CreateJobInpu
 }
 
 export async function deleteJob(id: number, userId: number): Promise<boolean> {
-  await ensureInitialized();
   const result = await sql`DELETE FROM jobs WHERE id = ${id} AND user_id = ${userId}`;
   return (result.rowCount ?? 0) > 0;
 }
 
 export async function getRecentJobs(limit = 10): Promise<Job[]> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM jobs WHERE status = 'active' ORDER BY created_at DESC LIMIT ${limit}`;
   return result.rows as Job[];
 }
 
 export async function getAllJobIds(): Promise<Array<{ id: number; updated_at: string }>> {
-  await ensureInitialized();
   const result = await sql`SELECT id, updated_at FROM jobs WHERE status = 'active'`;
   return result.rows as Array<{ id: number; updated_at: string }>;
 }
@@ -206,7 +194,6 @@ export async function getJobCountByRoleAndLocation(
   roleName: string,
   locationName: string
 ): Promise<number> {
-  await ensureInitialized();
   const result = await sql`
     SELECT COUNT(*)::integer as count FROM jobs
     WHERE category = ${roleName} AND location = ${locationName} AND status = 'active'
@@ -215,7 +202,6 @@ export async function getJobCountByRoleAndLocation(
 }
 
 export async function duplicateJob(jobId: number, userId: number): Promise<Job | null> {
-  await ensureInitialized();
   const result = await sql`
     INSERT INTO jobs (user_id, title, company, location, category, job_type, salary_min, salary_max,
       description, requirements, apply_url, apply_method, source, status, employer_name, employer_slug,
@@ -231,7 +217,6 @@ export async function duplicateJob(jobId: number, userId: number): Promise<Job |
 }
 
 export async function renewJob(jobId: number, userId: number): Promise<Job | null> {
-  await ensureInitialized();
   const result = await sql`
     UPDATE jobs SET
       status = 'active',
@@ -245,7 +230,6 @@ export async function renewJob(jobId: number, userId: number): Promise<Job | nul
 }
 
 export async function trackJobEvent(jobId: number, eventType: "view" | "apply_click"): Promise<void> {
-  await ensureInitialized();
   await sql`INSERT INTO job_events (job_id, event_type) VALUES (${jobId}, ${eventType})`;
   if (eventType === "view") {
     await sql`UPDATE jobs SET view_count = view_count + 1 WHERE id = ${jobId}`;
@@ -270,7 +254,6 @@ function parseJobWithEmployer(row: Record<string, unknown>): JobWithEmployer {
 }
 
 export async function getRecentJobsWithEmployer(limit = 10): Promise<JobWithEmployer[]> {
-  await ensureInitialized();
   const result = await sql`
     SELECT j.*,
       e.logo_url AS employer_logo_url,

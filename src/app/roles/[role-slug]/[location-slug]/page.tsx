@@ -10,6 +10,7 @@ import JobCard from "@/components/JobCard";
 import JsonLd from "@/components/JsonLd";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { buildBreadcrumbSchema, buildCollectionPageSchema } from "@/lib/jsonld";
+import EmptyJobsState from "@/components/EmptyJobsState";
 
 export function generateStaticParams() {
   return MH_ROLES.flatMap((role) =>
@@ -112,16 +113,11 @@ export default async function RoleLocationPage({
           ))}
         </div>
       ) : (
-        <div className="bg-lavender border border-violet-100 rounded-2xl p-8 mb-8 text-center">
-          <p className="text-slate-600 font-medium mb-2">No {role.name} roles in {loc.name} right now</p>
-          <p className="text-slate-500 text-sm mb-4">New roles are added daily. Check back soon or browse all current roles.</p>
-          <Link
-            href={`/jobs?category=${encodeURIComponent(role.name)}`}
-            className="inline-block px-6 py-2.5 rounded-full bg-violet-600 text-white font-medium hover:bg-violet-700 transition-all text-sm"
-          >
-            View all {role.name} roles
-          </Link>
-        </div>
+        <EmptyJobsState
+          label={`No ${role.name} roles in ${loc.name} right now`}
+          href={`/jobs?category=${encodeURIComponent(role.name)}`}
+          linkText={`View all ${role.name} roles`}
+        />
       )}
 
       {/* Editorial content */}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -22,9 +22,6 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     return NextResponse.json({ error: `Webhook verification failed: ${err instanceof Error ? err.message : String(err)}` }, { status: 400 });
   }
-
-  await ensureInitialized();
-
   // --- Boost: one-time payment completed ---
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;

@@ -1,22 +1,19 @@
-import { sql, ensureInitialized } from "./db";
+import { sql } from "./db";
 import { Employer, EmployerWithJobCount } from "./types";
 
 export async function getEmployerByUserId(userId: number): Promise<Employer | undefined> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM employers WHERE user_id = ${userId}`;
   if (!result.rows[0]) return undefined;
   return parseEmployerRow(result.rows[0] as Record<string, unknown>);
 }
 
 export async function getEmployerBySlug(slug: string): Promise<Employer | undefined> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM employers WHERE slug = ${slug}`;
   if (!result.rows[0]) return undefined;
   return parseEmployerRow(result.rows[0] as Record<string, unknown>);
 }
 
 export async function getEmployerById(id: number): Promise<Employer | undefined> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM employers WHERE id = ${id}`;
   if (!result.rows[0]) return undefined;
   return parseEmployerRow(result.rows[0] as Record<string, unknown>);
@@ -35,7 +32,6 @@ export async function upsertEmployer(
     benefits?: string[];
   }
 ): Promise<Employer> {
-  await ensureInitialized();
 
   const slug =
     data.slug ||
@@ -78,18 +74,15 @@ export async function upsertEmployer(
 }
 
 export async function updateEmployerLogo(userId: number, logoUrl: string): Promise<void> {
-  await ensureInitialized();
   await sql`UPDATE employers SET logo_url = ${logoUrl}, updated_at = NOW() WHERE user_id = ${userId}`;
 }
 
 export async function getAllEmployers(): Promise<Employer[]> {
-  await ensureInitialized();
   const result = await sql`SELECT * FROM employers ORDER BY name ASC`;
   return result.rows.map(parseEmployerRow);
 }
 
 export async function getDirectoryEmployers(): Promise<EmployerWithJobCount[]> {
-  await ensureInitialized();
   const result = await sql`
     SELECT e.*,
       COALESCE(j.cnt, 0)::integer AS active_job_count
@@ -111,7 +104,6 @@ export async function getDirectoryEmployers(): Promise<EmployerWithJobCount[]> {
 }
 
 export async function getFeaturedEmployers(limit = 8): Promise<EmployerWithJobCount[]> {
-  await ensureInitialized();
   const result = await sql`
     SELECT e.*,
       COALESCE(j.cnt, 0)::integer AS active_job_count
@@ -133,7 +125,6 @@ export async function getFeaturedEmployers(limit = 8): Promise<EmployerWithJobCo
 }
 
 export async function getAllEmployersAdmin(): Promise<EmployerWithJobCount[]> {
-  await ensureInitialized();
   const result = await sql`
     SELECT e.*,
       COALESCE(j.cnt, 0)::integer AS active_job_count
@@ -151,7 +142,6 @@ export async function getAllEmployersAdmin(): Promise<EmployerWithJobCount[]> {
 }
 
 export async function toggleFeatured(employerId: number, featured: boolean, days?: number): Promise<void> {
-  await ensureInitialized();
   if (featured && days) {
     await sql`
       UPDATE employers SET

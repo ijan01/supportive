@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { getAdminStats } from "@/lib/admin";
 import { getContentPlanStats } from "@/lib/content-plan";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 async function getBlogStats() {
-  await ensureInitialized();
   const [total, published, drafts] = await Promise.all([
     sql`SELECT COUNT(*)::int AS count FROM blog_posts`,
     sql`SELECT COUNT(*)::int AS count FROM blog_posts WHERE published_at IS NOT NULL`,

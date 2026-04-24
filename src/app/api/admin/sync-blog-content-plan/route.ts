@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/session";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
+import { SITE_URL } from "@/lib/config";
 
 // Full metadata for every blog post that exists in the DB.
 // Each entry either matches an existing content_plan row (by article_number)
@@ -95,17 +96,11 @@ const BLOG_POST_METADATA = [
     target_word_count_max: 1200,
   },
 ];
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://supportive.com.au";
-
 export async function GET(request: NextRequest) {
   const session = await getSessionFromRequest(request);
   if (!session || session.user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  await ensureInitialized();
-
   const results = [];
 
   for (const u of BLOG_POST_METADATA) {

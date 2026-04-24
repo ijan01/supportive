@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { sql, ensureInitialized } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { APPLICATION_STATUS_COLORS } from "@/constants";
 import ApplicationActions from "./client";
 
@@ -27,9 +27,6 @@ export default async function EmployerApplicationsPage() {
   const session = await getSession();
   if (!session?.user) redirect("/auth/login");
   if (session.user.role !== "company") redirect("/dashboard/seeker");
-
-  await ensureInitialized();
-
   const result = await sql`
     SELECT a.*, j.title AS job_title, j.company AS job_company
     FROM applications a

@@ -5,6 +5,8 @@ import { AU_SPECIALTIES } from "@/constants";
 import { getJobs, getJobCount } from "@/lib/jobs";
 import { SPECIALTY_CONTENT } from "@/content/specialties";
 import JobCard from "@/components/JobCard";
+import EmptyJobsState from "@/components/EmptyJobsState";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export function generateStaticParams() {
   return AU_SPECIALTIES.map((s) => ({ "specialty-slug": s.slug }));
@@ -54,11 +56,11 @@ export default async function SpecialtyHubPage({
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-2 text-sm text-slate-400">
-        <Link href="/specialties" className="hover:text-violet-600 transition-colors">Specialisations</Link>
-        <span className="mx-2">›</span>
-        <span>{specialty.name}</span>
-      </div>
+      <Breadcrumbs items={[
+        { label: "Home", href: "/" },
+        { label: "Specialisations", href: "/specialties" },
+        { label: specialty.name },
+      ]} />
 
       <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">{specialty.name} jobs in Australia</h1>
       {content && (
@@ -89,16 +91,7 @@ export default async function SpecialtyHubPage({
           )}
         </>
       ) : (
-        <div className="bg-lavender border border-violet-100 rounded-2xl p-8 mb-10 text-center">
-          <p className="text-slate-600 font-medium mb-2">No {specialty.name} roles listed right now</p>
-          <p className="text-slate-500 text-sm mb-4">New roles are added daily. Browse all current roles or try a broader search.</p>
-          <Link
-            href="/jobs"
-            className="inline-block px-6 py-2.5 rounded-full bg-violet-600 text-white font-medium hover:bg-violet-700 transition-all text-sm"
-          >
-            Browse all roles
-          </Link>
-        </div>
+        <EmptyJobsState label={`No ${specialty.name} roles listed right now`} />
       )}
 
       {content && (
