@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Career Blog",
   description: "Career advice, job search tips, and insights for professionals and hiring managers.",
+  alternates: { canonical: "/blog" },
   openGraph: {
     title: "Career Blog | Supportive",
     description: "Career advice, job search tips, and insights for professionals.",

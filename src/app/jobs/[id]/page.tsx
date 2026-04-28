@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
-import { getJobById, trackJobEvent } from "@/lib/jobs";
+import { getJobById, getJobByIdAny, getJobs, trackJobEvent } from "@/lib/jobs";
 import { getSession } from "@/lib/session";
 import { formatSalary } from "@/lib/utils";
 import { buildJobPostingSchema } from "@/lib/jsonld";
@@ -9,6 +9,7 @@ import { ORGANISATION_TYPES, EMPLOYER_BENEFITS } from "@/constants";
 import JobDetailClient from "./client";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
+import JobCard from "@/components/JobCard";
 
 export async function generateMetadata({
   params,
@@ -16,8 +17,16 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const job = await getJobById(Number(id));
+  const job = await getJobByIdAny(Number(id));
   if (!job) return { title: "Job Not Found" };
+
+  if (job.status !== "active") {
+    return {
+      title: `${job.title} at ${job.company} (Expired)`,
+      description: `This ${job.category} role at ${job.company} in ${job.location} is no longer accepting applications. Browse similar roles on Supportive.`,
+      robots: { index: false, follow: true },
+    };
+  }
 
   return {
     title: `${job.title} at ${job.company}`,
@@ -39,8 +48,50 @@ export default async function JobDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const job = await getJobById(Number(id));
+  const job = await getJobByIdAny(Number(id));
   if (!job) notFound();
+
+  if (job.status !== "active") {
+    let similarJobs: Awaited<ReturnType<typeof getJobs>> = [];
+    try {
+      similarJobs = await getJobs({ category: job.category, limit: 4 });
+    } catch { /* DB not available */ }
+
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
+          <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h1 className="text-2xl font-extrabold text-slate-900 mb-2">This role has expired</h1>
+        <p className="text-slate-500 mb-2">
+          <span className="font-semibold text-slate-700">{job.title}</span> at {job.company} is no longer accepting applications.
+        </p>
+        <p className="text-slate-400 text-sm mb-8">New roles are added daily — browse similar positions below.</p>
+
+        {similarJobs.length > 0 && (
+          <div className="text-left">
+            <h2 className="text-lg font-bold text-slate-800 mb-4">Similar {job.category} roles</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              {similarJobs.map((j) => (
+                <JobCard key={j.id} job={j} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-center gap-3">
+          <Link href="/jobs" className="px-6 py-2.5 rounded-full bg-violet-600 text-white font-medium hover:bg-violet-700 transition-all text-sm">
+            Browse all roles
+          </Link>
+          <Link href={`/jobs?category=${encodeURIComponent(job.category)}`} className="px-6 py-2.5 rounded-full border border-slate-200 text-slate-700 font-medium hover:border-violet-300 transition-all text-sm">
+            {job.category} roles
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // Track view server-side
   trackJobEvent(job.id, "view").catch(() => {});

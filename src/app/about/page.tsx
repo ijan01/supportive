@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "About us",
   description: "Supportive is Australia's job directory for mental health and supportive services roles.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {
