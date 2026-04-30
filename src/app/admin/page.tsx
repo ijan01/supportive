@@ -56,7 +56,7 @@ export default async function AdminDashboard() {
 
       {/* Content section */}
       <h2 className="text-lg font-bold text-slate-900 mb-4">Content</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <Link href="/admin/content" className="block bg-white rounded-2xl border border-slate-200 p-6 hover:border-violet-300 hover:shadow-md transition-all">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-bold text-slate-900">Content Plan</h3>
@@ -85,6 +85,14 @@ export default async function AdminDashboard() {
             <span><strong className="text-slate-600">{blogStats.drafts}</strong> drafts</span>
             <span><strong className="text-slate-600">{blogStats.total}</strong> total</span>
           </div>
+        </Link>
+
+        <Link href="/admin/agent" className="block bg-white rounded-2xl border border-slate-200 p-6 hover:border-violet-300 hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold text-slate-900">Content Agent</h3>
+            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-600">AI</span>
+          </div>
+          <p className="text-sm text-slate-500">Configure the AI model and system prompt used for article generation.</p>
         </Link>
       </div>
 

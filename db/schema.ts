@@ -269,6 +269,17 @@ async function addEmployerTables(): Promise<void> {
     )
   `;
 
+  // Content agent settings (singleton — always id = 1)
+  await sql`
+    CREATE TABLE IF NOT EXISTS agent_settings (
+      id INTEGER PRIMARY KEY DEFAULT 1,
+      model_id TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
+      system_prompt TEXT NOT NULL DEFAULT '',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT agent_settings_singleton CHECK (id = 1)
+    )
+  `;
+
   // New columns on applications
   await sql`ALTER TABLE applications ADD COLUMN IF NOT EXISTS phone TEXT`.catch(() => {});
   await sql`ALTER TABLE applications ADD COLUMN IF NOT EXISTS ahpra_number TEXT`.catch(() => {});
