@@ -5,6 +5,7 @@ import { cookies, headers } from "next/headers";
 import { encode } from "next-auth/jwt";
 import { getUserByEmail, verifyPassword } from "@/lib/users";
 import { rateLimit } from "@/lib/rate-limit";
+import { getAuthSecret } from "@/lib/session";
 
 export async function loginAction(
   _prev: { error: string } | null,
@@ -24,6 +25,13 @@ export async function loginAction(
     return { error: "Email and password are required" };
   }
 
+  let secret: string;
+  try {
+    secret = getAuthSecret();
+  } catch {
+    return { error: "Authentication is not configured. Please contact support." };
+  }
+
   const user = await getUserByEmail(email);
   if (!user) {
     return { error: "Invalid email or password" };
@@ -34,7 +42,6 @@ export async function loginAction(
     return { error: "Invalid email or password" };
   }
 
-  const secret = process.env.NEXTAUTH_SECRET || "development-secret-change-in-production";
   const useSecureCookies = process.env.NODE_ENV === "production";
   const cookieName = useSecureCookies
     ? "__Secure-authjs.session-token"

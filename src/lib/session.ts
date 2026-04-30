@@ -2,12 +2,23 @@ import { cookies } from "next/headers";
 import { decode, getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 
-function getSecret(): string {
+export function getAuthSecret(): string {
   const s = process.env.NEXTAUTH_SECRET;
-  if (!s && typeof window === "undefined" && process.env.NODE_ENV === "production" && !process.env.NEXT_PHASE) {
-    console.warn("[session] NEXTAUTH_SECRET is not set — using development fallback");
+  if (!s) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("NEXTAUTH_SECRET environment variable is required in production");
+    }
+    return "development-secret-change-in-production";
   }
-  return s || "development-secret-change-in-production";
+  return s;
+}
+
+function getSecret(): string {
+  try {
+    return getAuthSecret();
+  } catch {
+    return "development-secret-change-in-production";
+  }
 }
 
 const SECRET = getSecret();

@@ -5,6 +5,7 @@ import { cookies, headers } from "next/headers";
 import { encode } from "next-auth/jwt";
 import { createUser, getUserByEmail } from "@/lib/users";
 import { rateLimit } from "@/lib/rate-limit";
+import { getAuthSecret } from "@/lib/session";
 
 export async function registerAction(
   _prev: { error: string } | null,
@@ -27,8 +28,12 @@ export async function registerAction(
     return { error: "All fields are required" };
   }
 
-  if (password.length < 6) {
-    return { error: "Password must be at least 6 characters" };
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters" };
+  }
+
+  if (!["company", "seeker"].includes(role)) {
+    return { error: "Invalid role" };
   }
 
   const existing = await getUserByEmail(email);
@@ -36,9 +41,15 @@ export async function registerAction(
     return { error: "An account with this email already exists" };
   }
 
+  let secret: string;
+  try {
+    secret = getAuthSecret();
+  } catch {
+    return { error: "Authentication is not configured. Please contact support." };
+  }
+
   const user = await createUser(email, password, name, role, companyName || undefined);
 
-  const secret = process.env.NEXTAUTH_SECRET || "development-secret-change-in-production";
   const useSecureCookies = process.env.NODE_ENV === "production";
   const cookieName = useSecureCookies
     ? "__Secure-authjs.session-token"
