@@ -6,10 +6,14 @@ import { getSession } from "@/lib/session";
 import { formatSalary } from "@/lib/utils";
 import { buildJobPostingSchema } from "@/lib/jsonld";
 import { ORGANISATION_TYPES, EMPLOYER_BENEFITS } from "@/constants";
+import { getCityData } from "@/constants/location-data";
+import { getJobFaqs, getLocationSummary } from "@/lib/insights";
 import JobDetailClient from "./client";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 import JobCard from "@/components/JobCard";
+import AreaInformation from "@/components/AreaInformation";
+import JobFaq from "@/components/JobFaq";
 
 export async function generateMetadata({
   params,
@@ -103,6 +107,15 @@ export default async function JobDetailPage({
   const benefits = (job.employer_benefits || [])
     .map((slug: string) => EMPLOYER_BENEFITS.find((b) => b.slug === slug))
     .filter(Boolean);
+
+  // Area information + FAQ (non-blocking — failures degrade gracefully)
+  const cityData = getCityData(job.location_city);
+  const [locationSummary, faqs] = await Promise.all([
+    cityData && job.location_city && job.location_state
+      ? getLocationSummary(job.location_city, job.location_state).catch(() => null)
+      : Promise.resolve(null),
+    getJobFaqs(job).catch(() => null),
+  ]);
 
   return (
     <>
@@ -206,6 +219,18 @@ export default async function JobDetailPage({
               >
                 {job.source === "adzuna" ? "View full listing & apply" : "Apply on company site"}
               </a>
+            )}
+
+            {cityData && job.location_city && (
+              <AreaInformation
+                city={job.location_city}
+                cityData={cityData}
+                summary={locationSummary}
+              />
+            )}
+
+            {faqs && faqs.length > 0 && (
+              <JobFaq faqs={faqs} jobTitle={job.title} company={job.company} />
             )}
           </div>
         </div>

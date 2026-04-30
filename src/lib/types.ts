@@ -97,6 +97,7 @@ export interface Job {
   renewal_email_sent_at: string | null;
   listing_tier: ListingTier;
   stripe_session_id: string | null;
+  faqs: Array<{ question: string; answer: string }> | null;
 }
 
 export interface JobWithEmployer extends Job {

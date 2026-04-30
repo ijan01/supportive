@@ -257,6 +257,18 @@ async function addEmployerTables(): Promise<void> {
   await sql`CREATE INDEX IF NOT EXISTS idx_jobs_is_boosted ON jobs(is_boosted)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_jobs_listing_tier ON jobs(listing_tier)`.catch(() => {});
 
+  // AI-generated content cache
+  await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS faqs JSONB`.catch(() => {});
+  await sql`
+    CREATE TABLE IF NOT EXISTS location_insights (
+      id SERIAL PRIMARY KEY,
+      city TEXT UNIQUE NOT NULL,
+      state TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      generated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+
   // New columns on applications
   await sql`ALTER TABLE applications ADD COLUMN IF NOT EXISTS phone TEXT`.catch(() => {});
   await sql`ALTER TABLE applications ADD COLUMN IF NOT EXISTS ahpra_number TEXT`.catch(() => {});
