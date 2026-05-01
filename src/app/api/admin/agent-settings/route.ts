@@ -9,16 +9,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const result = await sql`SELECT model_id, system_prompt FROM agent_settings WHERE id = 1`;
-  if (result.rows.length === 0) {
+  try {
+    const result = await sql`SELECT model_id, system_prompt FROM agent_settings WHERE id = 1`;
+    if (result.rows.length === 0) {
+      return NextResponse.json({ model_id: DEFAULT_MODEL_ID, system_prompt: DEFAULT_SYSTEM_PROMPT });
+    }
+    const row = result.rows[0] as { model_id: string; system_prompt: string };
+    return NextResponse.json({
+      model_id: row.model_id,
+      system_prompt: row.system_prompt || DEFAULT_SYSTEM_PROMPT,
+    });
+  } catch {
     return NextResponse.json({ model_id: DEFAULT_MODEL_ID, system_prompt: DEFAULT_SYSTEM_PROMPT });
   }
-
-  const row = result.rows[0] as { model_id: string; system_prompt: string };
-  return NextResponse.json({
-    model_id: row.model_id,
-    system_prompt: row.system_prompt || DEFAULT_SYSTEM_PROMPT,
-  });
 }
 
 export async function PUT(request: NextRequest) {
@@ -37,21 +40,43 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
-  // Fetch current to merge partial updates
-  const current = await sql`SELECT model_id, system_prompt FROM agent_settings WHERE id = 1`;
-  const currentRow = current.rows[0] as { model_id: string; system_prompt: string } | undefined;
+  try {
+    // Ensure the table exists (idempotent)
+    await sql`
+      CREATE TABLE IF NOT EXISTS agent_settings (
+        id INTEGER PRIMARY KEY DEFAULT 1,
+        model_id TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
+        system_prompt TEXT NOT NULL DEFAULT '',
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
 
-  const newModelId = validModelId ?? currentRow?.model_id ?? DEFAULT_MODEL_ID;
-  const newPrompt = validPrompt ?? currentRow?.system_prompt ?? DEFAULT_SYSTEM_PROMPT;
+    // Fetch current to merge partial updates
+    const current = await sql`SELECT model_id, system_prompt FROM agent_settings WHERE id = 1`;
+    const currentRow = current.rows[0] as { model_id: string; system_prompt: string } | undefined;
 
-  await sql`
-    INSERT INTO agent_settings (id, model_id, system_prompt, updated_at)
-    VALUES (1, ${newModelId}, ${newPrompt}, NOW())
-    ON CONFLICT (id) DO UPDATE SET
-      model_id = ${newModelId},
-      system_prompt = ${newPrompt},
-      updated_at = NOW()
-  `;
+    const newModelId = validModelId ?? currentRow?.model_id ?? DEFAULT_MODEL_ID;
+    const newPrompt = validPrompt ?? (currentRow?.system_prompt || DEFAULT_SYSTEM_PROMPT);
 
-  return NextResponse.json({ ok: true, model_id: newModelId });
+    if (currentRow) {
+      await sql`
+        UPDATE agent_settings SET
+          model_id = ${newModelId},
+          system_prompt = ${newPrompt},
+          updated_at = NOW()
+        WHERE id = 1
+      `;
+    } else {
+      await sql`
+        INSERT INTO agent_settings (id, model_id, system_prompt, updated_at)
+        VALUES (1, ${newModelId}, ${newPrompt}, NOW())
+      `;
+    }
+
+    return NextResponse.json({ ok: true, model_id: newModelId });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[agent-settings] PUT error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
