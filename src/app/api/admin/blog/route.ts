@@ -39,6 +39,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, post });
   }
 
+  if (action === "publish") {
+    const id = Number(body.id);
+    if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+    const result = await sql`
+      UPDATE blog_posts SET published_at = COALESCE(published_at, NOW())
+      WHERE id = ${id}
+      RETURNING slug
+    `;
+    if (result.rows[0]) {
+      await syncContentPlanPublished(result.rows[0].slug as string, true);
+    }
+    return NextResponse.json({ ok: true });
+  }
+
   if (action === "delete") {
     await deleteBlogPost(body.id);
     return NextResponse.json({ ok: true });

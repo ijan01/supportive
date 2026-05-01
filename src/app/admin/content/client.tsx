@@ -568,7 +568,7 @@ function BulkGenerateModal({ items, onClose }: { items: ContentPlanItem[]; onClo
       await fetch("/api/admin/blog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update", id: r.blogPostId, published: true, title: r.title, slug: r.slug, content: "", excerpt: "", author: "Supportive" }),
+        body: JSON.stringify({ action: "publish", id: r.blogPostId }),
       }).catch(() => {});
     }
     setPublishing(false);
