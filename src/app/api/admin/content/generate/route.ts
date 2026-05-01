@@ -20,7 +20,7 @@ async function checkRateLimit(): Promise<boolean> {
     WHERE status = 'Draft'
       AND updated_at >= NOW() - INTERVAL '1 hour'
   `;
-  return (result.rows[0].count as number) < 3;
+  return (result.rows[0].count as number) < 20;
 }
 
 async function buildBrief(article: ContentPlanItem) {
@@ -168,6 +168,22 @@ export async function POST(request: NextRequest) {
             messages: [{ role: "user", content: brief }],
           });
           fullText = msg.content[0].type === "text" ? msg.content[0].text : "";
+        } else if (provider === "deepseek") {
+          const deepseekKey = process.env.DEEPSEEK_API_KEY;
+          if (!deepseekKey) throw new Error("DEEPSEEK_API_KEY is not configured in environment variables.");
+          const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${deepseekKey}` },
+            body: JSON.stringify({
+              model: modelId,
+              messages: [{ role: "system", content: systemPrompt }, { role: "user", content: brief }],
+              max_tokens: 8000,
+              temperature: 0.7,
+            }),
+          });
+          if (!res.ok) throw new Error(`DeepSeek API error: ${res.status} ${res.statusText}`);
+          const data = await res.json();
+          fullText = data.choices?.[0]?.message?.content ?? "";
         } else {
           const googleKey = process.env.GOOGLE_AI_API_KEY;
           if (!googleKey) throw new Error("GOOGLE_AI_API_KEY is not configured in environment variables.");

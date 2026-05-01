@@ -56,6 +56,8 @@ export default function ContentPlanClient({ items, stats }: Props) {
   const [filterType, setFilterType] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [editItem, setEditItem] = useState<ContentPlanItem | null>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [bulkModal, setBulkModal] = useState(false);
 
   const filtered = items.filter((item) => {
     if (filterStatus && item.status !== filterStatus) return false;
@@ -66,6 +68,17 @@ export default function ContentPlanClient({ items, stats }: Props) {
 
   const total = Object.values(stats).reduce((a, b) => a + b, 0);
   const pillars = items.filter((i) => i.content_type === "PILLAR");
+
+  function toggleSelect(id: number) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < 10) next.add(id);
+      return next;
+    });
+  }
+
+  const selectableItems = filtered.filter((i) => i.status !== "Published" && i.status !== "Draft");
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -87,6 +100,14 @@ export default function ContentPlanClient({ items, stats }: Props) {
           </div>
         </div>
         <div className="flex gap-2">
+          {selected.size > 0 && (
+            <button
+              onClick={() => setBulkModal(true)}
+              className="px-4 py-2 rounded-full bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700"
+            >
+              Bulk Generate ({selected.size})
+            </button>
+          )}
           <Link href="/admin/content/new" className="px-4 py-2 rounded-full bg-violet-600 text-white font-medium text-sm hover:bg-violet-700">
             New article
           </Link>
@@ -116,9 +137,9 @@ export default function ContentPlanClient({ items, stats }: Props) {
       </div>
 
       {view === "table" ? (
-        <TableView items={filtered} onEdit={setEditItem} />
+        <TableView items={filtered} onEdit={setEditItem} selected={selected} onToggle={toggleSelect} />
       ) : (
-        <MapView items={filtered} allItems={items} pillars={pillars} onEdit={setEditItem} />
+        <MapView items={filtered} allItems={items} pillars={pillars} onEdit={setEditItem} selected={selected} onToggle={toggleSelect} />
       )}
 
       {editItem && (
@@ -129,17 +150,25 @@ export default function ContentPlanClient({ items, stats }: Props) {
           onSaved={() => { setEditItem(null); router.refresh(); }}
         />
       )}
+
+      {bulkModal && (
+        <BulkGenerateModal
+          items={items.filter((i) => selected.has(i.id))}
+          onClose={() => { setBulkModal(false); setSelected(new Set()); router.refresh(); }}
+        />
+      )}
     </div>
   );
 }
 
-function TableView({ items, onEdit }: { items: ContentPlanItem[]; onEdit: (item: ContentPlanItem) => void }) {
+function TableView({ items, onEdit, selected, onToggle }: { items: ContentPlanItem[]; onEdit: (item: ContentPlanItem) => void; selected: Set<number>; onToggle: (id: number) => void }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
+              <th className="px-3 py-3 w-8" />
               <th className="text-left px-4 py-3 font-semibold text-slate-600 w-12">#</th>
               <th className="text-left px-4 py-3 font-semibold text-slate-600">Title</th>
               <th className="text-left px-4 py-3 font-semibold text-slate-600">Type</th>
@@ -152,6 +181,16 @@ function TableView({ items, onEdit }: { items: ContentPlanItem[]; onEdit: (item:
           <tbody>
             {items.map((item) => (
               <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50">
+                <td className="px-3 py-3">
+                  {item.status !== "Published" && (
+                    <input
+                      type="checkbox"
+                      checked={selected.has(item.id)}
+                      onChange={() => onToggle(item.id)}
+                      className="accent-violet-600"
+                    />
+                  )}
+                </td>
                 <td className="px-4 py-3 text-slate-400 font-mono text-xs">{item.article_number}</td>
                 <td className="px-4 py-3">
                   <button onClick={() => onEdit(item)} className="font-medium text-slate-900 hover:text-violet-600 text-left">{item.title}</button>
@@ -184,7 +223,7 @@ function TableView({ items, onEdit }: { items: ContentPlanItem[]; onEdit: (item:
   );
 }
 
-function MapView({ items, allItems, pillars, onEdit }: { items: ContentPlanItem[]; allItems: ContentPlanItem[]; pillars: ContentPlanItem[]; onEdit: (item: ContentPlanItem) => void }) {
+function MapView({ items, allItems, pillars, onEdit, selected, onToggle }: { items: ContentPlanItem[]; allItems: ContentPlanItem[]; pillars: ContentPlanItem[]; onEdit: (item: ContentPlanItem) => void; selected: Set<number>; onToggle: (id: number) => void }) {
   const itemSet = new Set(items.map((i) => i.id));
   const conversions = items.filter((i) => i.content_type === "CONVERSION");
 
@@ -211,11 +250,11 @@ function MapView({ items, allItems, pillars, onEdit }: { items: ContentPlanItem[
                 const clusters = allItems.filter((i) => i.content_type === "CLUSTER" && i.pillar_parent_id === pillar.article_number && itemSet.has(i.id));
                 return (
                   <div key={pillar.id}>
-                    <ContentCard item={pillar} onEdit={onEdit} borderColor={group.color} />
+                    <ContentCard item={pillar} onEdit={onEdit} borderColor={group.color} selected={selected.has(pillar.id)} onToggle={() => onToggle(pillar.id)} />
                     {clusters.length > 0 && (
                       <div className="ml-6 mt-2 space-y-2 border-l-2 border-slate-200 pl-4">
                         {clusters.map((cluster) => (
-                          <ContentCard key={cluster.id} item={cluster} onEdit={onEdit} small />
+                          <ContentCard key={cluster.id} item={cluster} onEdit={onEdit} small selected={selected.has(cluster.id)} onToggle={() => onToggle(cluster.id)} />
                         ))}
                       </div>
                     )}
@@ -236,7 +275,7 @@ function MapView({ items, allItems, pillars, onEdit }: { items: ContentPlanItem[
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 ml-3">
             {conversions.map((item) => (
-              <ContentCard key={item.id} item={item} onEdit={onEdit} small />
+              <ContentCard key={item.id} item={item} onEdit={onEdit} small selected={selected.has(item.id)} onToggle={() => onToggle(item.id)} />
             ))}
           </div>
         </div>
@@ -245,7 +284,7 @@ function MapView({ items, allItems, pillars, onEdit }: { items: ContentPlanItem[
   );
 }
 
-function ContentCard({ item, onEdit, borderColor, small }: { item: ContentPlanItem; onEdit: (item: ContentPlanItem) => void; borderColor?: string; small?: boolean }) {
+function ContentCard({ item, onEdit, borderColor, small, selected, onToggle }: { item: ContentPlanItem; onEdit: (item: ContentPlanItem) => void; borderColor?: string; small?: boolean; selected?: boolean; onToggle?: () => void }) {
   const isPublished = item.status === "Published";
   const isPlanned = item.status === "Planned";
 
@@ -280,7 +319,17 @@ function ContentCard({ item, onEdit, borderColor, small }: { item: ContentPlanIt
             )}
           </div>
         </div>
-        {isPublished && <span className="text-emerald-500 shrink-0">&#10003;</span>}
+        {isPublished ? (
+          <span className="text-emerald-500 shrink-0">&#10003;</span>
+        ) : onToggle ? (
+          <input
+            type="checkbox"
+            checked={selected || false}
+            onChange={(e) => { e.stopPropagation(); onToggle(); }}
+            onClick={(e) => e.stopPropagation()}
+            className="accent-violet-600 shrink-0"
+          />
+        ) : null}
       </div>
     </button>
   );
@@ -464,6 +513,145 @@ function EditModal({ item, pillars, onClose, onSaved }: { item: ContentPlanItem;
           <button onClick={onClose} disabled={generating} className="px-4 py-2.5 rounded-full border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50 ml-auto disabled:opacity-50">
             Cancel
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface BulkResult {
+  id: number;
+  title: string;
+  status: "pending" | "running" | "done" | "error";
+  slug?: string;
+  blogPostId?: number;
+  error?: string;
+}
+
+function BulkGenerateModal({ items, onClose }: { items: ContentPlanItem[]; onClose: () => void }) {
+  const [results, setResults] = useState<BulkResult[]>(
+    items.map((i) => ({ id: i.id, title: i.title, status: "pending" as const }))
+  );
+  const [running, setRunning] = useState(false);
+  const [done, setDone] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+
+  const completed = results.filter((r) => r.status === "done").length;
+  const errors = results.filter((r) => r.status === "error").length;
+  const progress = results.length > 0 ? Math.round(((completed + errors) / results.length) * 100) : 0;
+
+  async function runAll() {
+    setRunning(true);
+    for (let i = 0; i < results.length; i++) {
+      setResults((prev) => prev.map((r, j) => j === i ? { ...r, status: "running" } : r));
+      try {
+        const res = await fetch("/api/admin/content/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ articleId: results[i].id }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed");
+        setResults((prev) => prev.map((r, j) => j === i ? { ...r, status: "done", slug: data.slug, blogPostId: data.blogPostId } : r));
+      } catch (err) {
+        setResults((prev) => prev.map((r, j) => j === i ? { ...r, status: "error", error: err instanceof Error ? err.message : "Failed" } : r));
+      }
+    }
+    setRunning(false);
+    setDone(true);
+  }
+
+  async function publishAll() {
+    setPublishing(true);
+    const doneResults = results.filter((r) => r.status === "done" && r.blogPostId);
+    for (const r of doneResults) {
+      await fetch("/api/admin/blog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", id: r.blogPostId, published: true, title: r.title, slug: r.slug, content: "", excerpt: "", author: "Supportive" }),
+      }).catch(() => {});
+    }
+    setPublishing(false);
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-lg max-h-[80vh] overflow-y-auto m-4 p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-slate-900">Bulk Generate</h2>
+          <button onClick={onClose} disabled={running} className="text-slate-400 hover:text-slate-600 text-xl disabled:opacity-50">&times;</button>
+        </div>
+
+        <p className="text-sm text-slate-500 mb-4">
+          {results.length} article{results.length !== 1 ? "s" : ""} selected. Articles will be generated sequentially.
+        </p>
+
+        {/* Progress bar */}
+        {(running || done) && (
+          <div className="mb-4">
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-violet-600 rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="text-xs text-slate-500 mt-1">{completed + errors} of {results.length} — {completed} done, {errors} failed</p>
+          </div>
+        )}
+
+        {/* Article list */}
+        <div className="divide-y divide-slate-100 mb-4 max-h-60 overflow-y-auto">
+          {results.map((r) => (
+            <div key={r.id} className="flex items-center gap-3 py-2">
+              {r.status === "pending" && <span className="w-5 h-5 rounded-full bg-slate-100 shrink-0" />}
+              {r.status === "running" && <div className="w-5 h-5 border-2 border-violet-600 border-t-transparent rounded-full animate-spin shrink-0" />}
+              {r.status === "done" && <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs shrink-0">&#10003;</span>}
+              {r.status === "error" && <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xs shrink-0">&#10007;</span>}
+              <span className={`text-sm truncate ${r.status === "error" ? "text-red-600" : "text-slate-700"}`}>
+                {r.title}
+              </span>
+              {r.status === "done" && r.blogPostId && (
+                <a href={`/admin/blog/edit?id=${r.blogPostId}`} className="ml-auto text-xs text-violet-600 hover:underline shrink-0">View</a>
+              )}
+              {r.status === "error" && (
+                <span className="ml-auto text-xs text-red-500 truncate max-w-[120px]" title={r.error}>{r.error}</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 pt-4 border-t border-slate-100">
+          {!running && !done && (
+            <button onClick={runAll} className="px-5 py-2.5 rounded-full bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700">
+              Start Generating
+            </button>
+          )}
+          {done && completed > 0 && (
+            <>
+              <button
+                onClick={publishAll}
+                disabled={publishing}
+                className="px-5 py-2.5 rounded-full bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {publishing ? "Publishing..." : `Publish All (${completed})`}
+              </button>
+              <button onClick={onClose} className="px-4 py-2.5 rounded-full border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50">
+                Review one by one
+              </button>
+            </>
+          )}
+          {!running && !done && (
+            <button onClick={onClose} className="px-4 py-2.5 rounded-full border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50">
+              Cancel
+            </button>
+          )}
+          {done && completed === 0 && (
+            <button onClick={onClose} className="px-4 py-2.5 rounded-full border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50">
+              Close
+            </button>
+          )}
         </div>
       </div>
     </div>

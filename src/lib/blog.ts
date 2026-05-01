@@ -6,6 +6,39 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
   return result.rows as unknown as BlogPost[];
 }
 
+export async function getBlogPostsPaginated(
+  page: number,
+  perPage: number,
+  category?: string | null
+): Promise<{ posts: BlogPost[]; total: number }> {
+  const offset = (page - 1) * perPage;
+  const cat = category || null;
+  const [postsResult, countResult] = await Promise.all([
+    sql`
+      SELECT * FROM blog_posts
+      WHERE published_at IS NOT NULL
+        AND (${cat}::text IS NULL
+          OR primary_keyword ILIKE '%' || ${cat} || '%'
+          OR title ILIKE '%' || ${cat} || '%'
+          OR secondary_keywords ILIKE '%' || ${cat} || '%')
+      ORDER BY published_at DESC
+      LIMIT ${perPage} OFFSET ${offset}
+    `,
+    sql`
+      SELECT COUNT(*)::int AS total FROM blog_posts
+      WHERE published_at IS NOT NULL
+        AND (${cat}::text IS NULL
+          OR primary_keyword ILIKE '%' || ${cat} || '%'
+          OR title ILIKE '%' || ${cat} || '%'
+          OR secondary_keywords ILIKE '%' || ${cat} || '%')
+    `,
+  ]);
+  return {
+    posts: postsResult.rows as unknown as BlogPost[],
+    total: countResult.rows[0].total as number,
+  };
+}
+
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
   const result = await sql`SELECT * FROM blog_posts WHERE slug = ${slug} AND published_at IS NOT NULL`;
   return result.rows[0] as unknown as BlogPost | undefined;

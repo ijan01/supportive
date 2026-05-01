@@ -31,6 +31,7 @@ export default function AgentSettingsClient({ initialModelId, initialSystemPromp
 
   const anthropicModels = CONTENT_MODELS.filter((m) => m.provider === "anthropic");
   const googleModels    = CONTENT_MODELS.filter((m) => m.provider === "google");
+  const deepseekModels  = CONTENT_MODELS.filter((m) => m.provider === "deepseek");
 
   async function saveModel() {
     setModelStatus("saving");
@@ -118,6 +119,34 @@ export default function AgentSettingsClient({ initialModelId, initialSystemPromp
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Google</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
           {googleModels.map((m) => (
+            <label
+              key={m.id}
+              className={`relative flex flex-col gap-1 border rounded-xl p-4 cursor-pointer transition-all ${
+                pendingModelId === m.id
+                  ? "border-violet-500 bg-violet-50 shadow-sm"
+                  : "border-slate-200 hover:border-violet-200"
+              }`}
+            >
+              <input
+                type="radio"
+                name="model"
+                value={m.id}
+                checked={pendingModelId === m.id}
+                onChange={() => setPendingModelId(m.id)}
+                className="absolute top-3 right-3 accent-violet-600"
+              />
+              <span className="text-sm font-semibold text-slate-800 pr-5">{m.name}</span>
+              <span className={`self-start text-xs font-semibold px-1.5 py-0.5 rounded ${BADGE_STYLES[m.badge]}`}>
+                {m.badge}
+              </span>
+              <span className="text-xs text-slate-400">{m.description}</span>
+            </label>
+          ))}
+        </div>
+
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">DeepSeek</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+          {deepseekModels.map((m) => (
             <label
               key={m.id}
               className={`relative flex flex-col gap-1 border rounded-xl p-4 cursor-pointer transition-all ${

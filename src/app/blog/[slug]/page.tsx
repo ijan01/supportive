@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getBlogPostBySlug, getAllBlogSlugs } from "@/lib/blog";
+import { getBlogPostBySlug, getBlogPostBySlugAdmin, getAllBlogSlugs } from "@/lib/blog";
+import { getSession } from "@/lib/session";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 import BlogContent from "./content";
@@ -69,7 +70,17 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await getBlogPostBySlug(slug);
+  let post = await getBlogPostBySlug(slug);
+  let isDraft = false;
+
+  // Allow admins to preview unpublished drafts
+  if (!post) {
+    const session = await getSession();
+    if (session?.user?.role === "admin") {
+      post = await getBlogPostBySlugAdmin(slug);
+      if (post) isDraft = true;
+    }
+  }
   if (!post) notFound();
 
   const date = post.published_at
@@ -85,6 +96,11 @@ export default async function BlogPostPage({
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {isDraft && (
+        <div className="mb-6 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm font-medium">
+          Draft preview — this post is not published yet. Only admins can see this page.
+        </div>
+      )}
       <JsonLd data={articleSchema} />
       <JsonLd data={breadcrumbSchema} />
       <Breadcrumbs items={[

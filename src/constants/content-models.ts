@@ -1,4 +1,4 @@
-export type ModelProvider = "anthropic" | "google";
+export type ModelProvider = "anthropic" | "google" | "deepseek";
 export type ModelBadge = "FAST" | "DEFAULT" | "BEST";
 
 export interface ContentModel {
@@ -19,6 +19,9 @@ export const CONTENT_MODELS: ContentModel[] = [
   { id: "gemini-2.0-flash",  name: "Gemini 2.0 Flash", provider: "google", badge: "FAST",    description: "Fastest · lowest cost" },
   { id: "gemini-2.5-flash",  name: "Gemini 2.5 Flash", provider: "google", badge: "DEFAULT", description: "Balanced", isDefault: true },
   { id: "gemini-2.5-pro",    name: "Gemini 2.5 Pro",   provider: "google", badge: "BEST",    description: "Highest quality" },
+  // DeepSeek
+  { id: "deepseek-chat",     name: "DeepSeek V3",      provider: "deepseek", badge: "DEFAULT", description: "Fast · low cost" },
+  { id: "deepseek-reasoner", name: "DeepSeek R1",      provider: "deepseek", badge: "BEST",    description: "Reasoning model" },
 ];
 
 export const DEFAULT_MODEL_ID = "gemini-2.5-flash";
@@ -136,6 +139,9 @@ Start your response with a JSON metadata block in this exact format:
 Then write the full article immediately after.`;
 
 export function getModelProvider(modelId: string): ModelProvider {
+  if (modelId.startsWith("claude-")) return "anthropic";
+  if (modelId.startsWith("deepseek-")) return "deepseek";
+  if (modelId.startsWith("gemini-")) return "google";
   const model = CONTENT_MODELS.find((m) => m.id === modelId);
   return model?.provider ?? "google";
 }
