@@ -25,8 +25,9 @@ export default function AgentSettingsClient({ initialModelId, initialSystemPromp
   const [pendingModelId, setPendingModelId] = useState(initialModelId);
   const [systemPrompt, setSystemPrompt] = useState(initialSystemPrompt);
   const [savedPrompt, setSavedPrompt] = useState(initialSystemPrompt);
-  const [modelStatus, setModelStatus] = useState<"idle" | "saving" | "saved">("idle");
-  const [promptStatus, setPromptStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [modelStatus, setModelStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [promptStatus, setPromptStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const [, startTransition] = useTransition();
 
   const anthropicModels = CONTENT_MODELS.filter((m) => m.provider === "anthropic");
@@ -35,33 +36,47 @@ export default function AgentSettingsClient({ initialModelId, initialSystemPromp
 
   async function saveModel() {
     setModelStatus("saving");
+    setErrorMsg("");
     try {
-      await fetch("/api/admin/agent-settings", {
+      const res = await fetch("/api/admin/agent-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model_id: pendingModelId }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        throw new Error(data.error || `Save failed (${res.status})`);
+      }
       setModelId(pendingModelId);
       setModelStatus("saved");
       setTimeout(() => setModelStatus("idle"), 2000);
-    } catch {
-      setModelStatus("idle");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Save failed");
+      setModelStatus("error");
+      setTimeout(() => setModelStatus("idle"), 5000);
     }
   }
 
   async function savePrompt() {
     setPromptStatus("saving");
+    setErrorMsg("");
     try {
-      await fetch("/api/admin/agent-settings", {
+      const res = await fetch("/api/admin/agent-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ system_prompt: systemPrompt }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        throw new Error(data.error || `Save failed (${res.status})`);
+      }
       setSavedPrompt(systemPrompt);
       setPromptStatus("saved");
       setTimeout(() => setPromptStatus("idle"), 2000);
-    } catch {
-      setPromptStatus("idle");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Save failed");
+      setPromptStatus("error");
+      setTimeout(() => setPromptStatus("idle"), 5000);
     }
   }
 
@@ -180,13 +195,18 @@ export default function AgentSettingsClient({ initialModelId, initialSystemPromp
           </div>
         </div>
 
-        <button
-          onClick={saveModel}
-          disabled={!modelDirty || modelStatus === "saving"}
-          className="px-5 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {modelStatus === "saving" ? "Saving…" : modelStatus === "saved" ? "Saved ✓" : "Save model"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={saveModel}
+            disabled={!modelDirty || modelStatus === "saving"}
+            className="px-5 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {modelStatus === "saving" ? "Saving…" : modelStatus === "saved" ? "Saved ✓" : modelStatus === "error" ? "Failed" : "Save model"}
+          </button>
+          {modelStatus === "error" && errorMsg && (
+            <span className="text-xs text-red-600">{errorMsg}</span>
+          )}
+        </div>
       </div>
 
       {/* System prompt editor */}
@@ -217,10 +237,13 @@ export default function AgentSettingsClient({ initialModelId, initialSystemPromp
             disabled={!promptDirty || promptStatus === "saving"}
             className="px-5 py-2 rounded-lg bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {promptStatus === "saving" ? "Saving…" : promptStatus === "saved" ? "Saved ✓" : "Save prompt"}
+            {promptStatus === "saving" ? "Saving…" : promptStatus === "saved" ? "Saved ✓" : promptStatus === "error" ? "Failed" : "Save prompt"}
           </button>
           {promptDirty && promptStatus === "idle" && (
             <span className="text-xs text-amber-600">Unsaved changes</span>
+          )}
+          {promptStatus === "error" && errorMsg && (
+            <span className="text-xs text-red-600">{errorMsg}</span>
           )}
         </div>
       </div>
