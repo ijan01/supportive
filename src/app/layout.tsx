@@ -86,6 +86,16 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         )}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-2BX01HTB10"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-2BX01HTB10');`}
+        </Script>
       </body>
     </html>
   );
