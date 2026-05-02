@@ -41,16 +41,6 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    // Ensure the table exists (idempotent)
-    await sql`
-      CREATE TABLE IF NOT EXISTS agent_settings (
-        id INTEGER PRIMARY KEY DEFAULT 1,
-        model_id TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
-        system_prompt TEXT NOT NULL DEFAULT '',
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      )
-    `;
-
     // Fetch current to merge partial updates
     const current = await sql`SELECT model_id, system_prompt FROM agent_settings WHERE id = 1`;
     const currentRow = current.rows[0] as { model_id: string; system_prompt: string } | undefined;

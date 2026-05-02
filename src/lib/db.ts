@@ -13,5 +13,6 @@ export async function sql(
   ...values: unknown[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<{ rows: any[]; rowCount: number }> {
+  await ensureInitialized();
   return rawSql(strings, ...values);
 }
