@@ -17,6 +17,16 @@ async function getBlogStats() {
 }
 
 export default async function AdminDashboard() {
+  // Ensure agent_settings table exists before querying
+  await sql`
+    CREATE TABLE IF NOT EXISTS agent_settings (
+      id INTEGER PRIMARY KEY DEFAULT 1,
+      model_id TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
+      system_prompt TEXT NOT NULL DEFAULT '',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `.catch(() => {});
+
   const [stats, contentStats, blogStats, agentRow] = await Promise.all([
     getAdminStats(),
     getContentPlanStats().catch(() => ({} as Record<string, number>)),
