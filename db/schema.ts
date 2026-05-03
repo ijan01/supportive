@@ -5,6 +5,15 @@ let initialized = false;
 export async function initSchema(): Promise<void> {
   if (initialized) return;
 
+  // Fast check: if the latest table exists, skip all migrations
+  try {
+    await sql`SELECT 1 FROM agent_settings LIMIT 0`;
+    initialized = true;
+    return;
+  } catch {
+    // Table doesn't exist yet — run full migration
+  }
+
   await sql`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
