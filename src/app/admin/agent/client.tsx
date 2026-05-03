@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { CONTENT_MODELS, type ModelBadge } from "@/constants/content-models";
 
@@ -30,6 +30,23 @@ export default function AgentSettingsClient({ initialModelId, initialSystemPromp
   const [errorMsg, setErrorMsg] = useState("");
   const [, startTransition] = useTransition();
 
+  // Fetch fresh settings on mount to avoid stale server-rendered props
+  useEffect(() => {
+    fetch("/api/admin/agent-settings")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.model_id) {
+          setModelId(data.model_id);
+          setPendingModelId(data.model_id);
+        }
+        if (data?.system_prompt) {
+          setSystemPrompt(data.system_prompt);
+          setSavedPrompt(data.system_prompt);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const anthropicModels = CONTENT_MODELS.filter((m) => m.provider === "anthropic");
   const googleModels    = CONTENT_MODELS.filter((m) => m.provider === "google");
   const deepseekModels  = CONTENT_MODELS.filter((m) => m.provider === "deepseek");
@@ -43,11 +60,12 @@ export default function AgentSettingsClient({ initialModelId, initialSystemPromp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model_id: pendingModelId }),
       });
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
         throw new Error(data.error || `Save failed (${res.status})`);
       }
-      setModelId(pendingModelId);
+      setModelId(data.model_id || pendingModelId);
+      setPendingModelId(data.model_id || pendingModelId);
       setModelStatus("saved");
       setTimeout(() => setModelStatus("idle"), 2000);
     } catch (err) {
