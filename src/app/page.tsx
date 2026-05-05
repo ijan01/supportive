@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import Hero from "@/components/Hero";
 import JobCard from "@/components/JobCard";
@@ -7,6 +8,16 @@ import { getBlogPosts } from "@/lib/blog";
 import { ORGANISATION_TYPES, EMPLOYER_BENEFITS, BENEFITS_PRIORITY } from "@/constants";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Mental health jobs in Australia | Supportive",
+  description: "Browse mental health, AOD, NDIS, and community services jobs across Australia. Find roles with mission-aligned employers — psychologist, counsellor, social worker, peer support, and more.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Mental health jobs in Australia | Supportive",
+    description: "Browse clinical, community, AOD, peer work, and NDIS roles posted by mission-aligned employers across Australia.",
+  },
+};
 
 export default async function Home() {
   const [featuredJobs, blogPostsAll, jobCount, featuredEmployers] = await Promise.all([

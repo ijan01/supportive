@@ -43,12 +43,17 @@ export async function generateMetadata({
   const hasContent = !!content;
   const noindex = !hasContent && listingsCount < 3;
 
+  const title = `${role.name} jobs in ${loc.name}`;
+  const description = content
+    ? `Find ${role.name} jobs in ${loc.name}. ${content.demandNote} Browse current listings on Supportive.`
+    : `Browse ${role.name} roles in ${loc.name}. Find opportunities with mission-aligned mental health employers on Supportive.`;
+
   return {
-    title: `${role.name} jobs in ${loc.name}`,
-    description: content
-      ? `Find ${role.name} jobs in ${loc.name}. ${content.demandNote} Browse current listings on Supportive.`
-      : `Browse ${role.name} roles in ${loc.name}. Find opportunities with mission-aligned mental health employers on Supportive.`,
+    title,
+    description,
     alternates: { canonical: `/roles/${p["role-slug"]}/${p["location-slug"]}` },
+    openGraph: { title, description },
+    twitter: { card: "summary_large_image" as const, title, description },
     ...(noindex && { robots: { index: false, follow: true } }),
   };
 }

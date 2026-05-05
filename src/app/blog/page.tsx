@@ -18,15 +18,25 @@ const CATEGORIES = [
   { label: "For Employers", value: "employer" },
 ];
 
-export const metadata: Metadata = {
-  title: "Career Blog",
-  description: "Career advice, job search tips, and insights for professionals and hiring managers.",
-  alternates: { canonical: "/blog" },
-  openGraph: {
-    title: "Career Blog | Supportive",
-    description: "Career advice, job search tips, and insights for professionals.",
-  },
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string; page?: string }>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const hasFilters = params.category || (params.page && params.page !== "1");
+
+  return {
+    title: "Career Blog",
+    description: "Career advice, job search tips, and insights for professionals and hiring managers.",
+    alternates: { canonical: "/blog" },
+    openGraph: {
+      title: "Career Blog | Supportive",
+      description: "Career advice, job search tips, and insights for professionals.",
+    },
+    ...(hasFilters && { robots: { index: false, follow: true } }),
+  };
+}
 
 export default async function BlogPage({
   searchParams,
