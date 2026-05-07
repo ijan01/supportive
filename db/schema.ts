@@ -5,11 +5,15 @@ let initialized = false;
 export async function initSchema(): Promise<void> {
   if (initialized) return;
 
-  // Fast check: if the latest table exists, skip all migrations
+  // Fast check: if the latest table exists AND RLS is enabled, skip all migrations
   try {
-    await sql`SELECT 1 FROM agent_settings LIMIT 0`;
-    initialized = true;
-    return;
+    const rlsCheck = await sql`
+      SELECT relrowsecurity FROM pg_class WHERE relname = 'agent_settings'
+    `;
+    if (rlsCheck.rows.length > 0 && rlsCheck.rows[0].relrowsecurity === true) {
+      initialized = true;
+      return;
+    }
   } catch {
     // Table doesn't exist yet — run full migration
   }
@@ -310,6 +314,22 @@ async function addEmployerTables(): Promise<void> {
     FROM employers e
     WHERE jobs.user_id = e.user_id AND jobs.employer_id IS NULL AND jobs.source = 'manual'
   `.catch(() => {});
+
+  // Enable Row-Level Security on all tables to block public Supabase REST API access.
+  // The app connects via direct postgres (bypasses RLS), so this only locks down the anon/authenticated keys.
+  await sql`ALTER TABLE users ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE jobs ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE applications ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE saved_jobs ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE feed_runs ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE content_plan ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE employers ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE boosts ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE saved_searches ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE job_events ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE location_insights ENABLE ROW LEVEL SECURITY`.catch(() => {});
+  await sql`ALTER TABLE agent_settings ENABLE ROW LEVEL SECURITY`.catch(() => {});
 }
 
 async function addFeedColumns(): Promise<void> {
