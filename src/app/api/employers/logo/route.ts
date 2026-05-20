@@ -30,33 +30,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "File too large. Maximum 2MB." }, { status: 400 });
   }
 
-  // Try Supabase Storage first, fall back to data URL
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
+  const buffer = Buffer.from(await file.arrayBuffer());
   let publicUrl: string;
 
-  if (supabaseUrl && supabaseKey) {
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  const s3Bucket = process.env.S3_BUCKET_NAME;
+  const awsRegion = process.env.AWS_REGION;
+
+  if (s3Bucket && awsRegion) {
+    const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+    const s3 = new S3Client({ region: awsRegion });
 
     const ext = file.name.split(".").pop() || "png";
-    const path = `${employer.id}/${Date.now()}.${ext}`;
+    const key = `employer-logos/${employer.id}/${Date.now()}.${ext}`;
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const { error } = await supabase.storage
-      .from("employer-logos")
-      .upload(path, buffer, { contentType: file.type, upsert: true });
+    await s3.send(new PutObjectCommand({
+      Bucket: s3Bucket,
+      Key: key,
+      Body: buffer,
+      ContentType: file.type,
+    }));
 
-    if (error) {
-      return NextResponse.json({ error: `Upload failed: ${error.message}` }, { status: 500 });
-    }
-
-    const { data: urlData } = supabase.storage.from("employer-logos").getPublicUrl(path);
-    publicUrl = urlData.publicUrl;
+    publicUrl = `https://${s3Bucket}.s3.${awsRegion}.amazonaws.com/${key}`;
   } else {
-    // Fallback: store as base64 data URL (works without Supabase Storage)
-    const buffer = Buffer.from(await file.arrayBuffer());
     publicUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
   }
 

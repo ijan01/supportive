@@ -1,7 +1,7 @@
 import postgres from "postgres";
 
 const db = postgres(process.env.POSTGRES_URL!, {
-  ssl: { rejectUnauthorized: false },
+  ssl: process.env.POSTGRES_URL?.includes("localhost") ? false : "require",
   max: 10,
   idle_timeout: 30,
   connect_timeout: 5,
