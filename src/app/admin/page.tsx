@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAdminStats } from "@/lib/admin";
+import { getAdminStats, type AdminStats } from "@/lib/admin";
 import { getContentPlanStats } from "@/lib/content-plan";
 import { sql } from "@/lib/db";
 import { DEFAULT_MODEL_ID, DEFAULT_SYSTEM_PROMPT } from "@/constants/content-models";
@@ -17,8 +17,9 @@ async function getBlogStats() {
 }
 
 export default async function AdminDashboard() {
+  const defaultStats: AdminStats = { totalUsers: 0, totalJobs: 0, activeJobs: 0, pendingReview: 0, totalApplications: 0, companiesCount: 0 };
   const [stats, contentStats, blogStats, agentRow] = await Promise.all([
-    getAdminStats(),
+    getAdminStats().catch(() => defaultStats),
     getContentPlanStats().catch(() => ({} as Record<string, number>)),
     getBlogStats().catch(() => ({ total: 0, published: 0, drafts: 0 })),
     sql`SELECT model_id, system_prompt FROM agent_settings WHERE id = 1`.catch(() => ({ rows: [] })),
