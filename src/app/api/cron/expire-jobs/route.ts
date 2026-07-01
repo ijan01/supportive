@@ -9,13 +9,21 @@ export async function GET(request: NextRequest) {
   const authError = requireCronAuth(request);
   if (authError) return authError;
 
-  // 1. Expire listings past their valid_through date
-  const expiredResult = await sql`
-    UPDATE jobs SET status = 'expired', is_boosted = FALSE, updated_at = NOW()
-    WHERE status = 'active'
-      AND valid_through IS NOT NULL
-      AND valid_through < NOW()
-  `;
+  // 1. Expire listings past their valid_through date (active and review_queue)
+  const [expiredResult, expiredQueueResult] = await Promise.all([
+    sql`
+      UPDATE jobs SET status = 'expired', is_boosted = FALSE, updated_at = NOW()
+      WHERE status = 'active'
+        AND valid_through IS NOT NULL
+        AND valid_through < NOW()
+    `,
+    sql`
+      UPDATE jobs SET status = 'expired', updated_at = NOW()
+      WHERE status = 'review_queue'
+        AND valid_through IS NOT NULL
+        AND valid_through < NOW()
+    `,
+  ]);
 
   // 2. Expire boosts past their expiry
   const boostExpired = await sql`
@@ -88,11 +96,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  console.log(`[cron/expire-jobs] expired ${expiredResult.rowCount} jobs, ${boostExpired.rowCount} boosts, ${featuredExpired.rowCount} featured, sent ${emailsSent} warning emails`);
+  console.log(`[cron/expire-jobs] expired ${expiredResult.rowCount} active jobs, ${expiredQueueResult.rowCount} review_queue jobs, ${boostExpired.rowCount} boosts, ${featuredExpired.rowCount} featured, sent ${emailsSent} warning emails`);
 
   return NextResponse.json({
     ok: true,
     expired: expiredResult.rowCount,
+    expiredFromQueue: expiredQueueResult.rowCount,
     boostsExpired: boostExpired.rowCount,
     featuredExpired: featuredExpired.rowCount,
     warningEmailsSent: emailsSent,

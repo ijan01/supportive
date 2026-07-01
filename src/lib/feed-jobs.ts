@@ -2,11 +2,26 @@ import { sql } from "./db";
 import { Job, JobStatus, FeedRun } from "./types";
 import { MH_ROLES } from "@/constants";
 
-export async function getJobsByStatus(status: JobStatus, limit = 100): Promise<Job[]> {
+export async function getJobsByStatus(status: JobStatus, limit = 200): Promise<Job[]> {
   const result = await sql`
     SELECT * FROM jobs WHERE status = ${status} ORDER BY created_at DESC LIMIT ${limit}
   `;
   return result.rows as Job[];
+}
+
+export async function countJobsByStatus(status: JobStatus): Promise<number> {
+  const result = await sql`SELECT COUNT(*)::int AS count FROM jobs WHERE status = ${status}`;
+  return result.rows[0].count as number;
+}
+
+export async function expireStaleQueueJobs(): Promise<number> {
+  const result = await sql`
+    UPDATE jobs SET status = 'expired', updated_at = NOW()
+    WHERE status = 'review_queue'
+      AND valid_through IS NOT NULL
+      AND valid_through < NOW()
+  `;
+  return result.rowCount ?? 0;
 }
 
 export async function updateJobStatus(id: number, status: JobStatus): Promise<void> {

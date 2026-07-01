@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Job } from "@/lib/types";
 import { MH_ROLES, MH_ROLE_GROUPS } from "@/constants";
 
-export default function ReviewQueueClient({ jobs: initialJobs }: { jobs: Job[] }) {
+export default function ReviewQueueClient({ jobs: initialJobs, totalCount }: { jobs: Job[]; totalCount: number }) {
   const [jobs, setJobs] = useState(initialJobs);
   const [acting, setActing] = useState<number | null>(null);
   const [bulkActing, setBulkActing] = useState(false);
+  const [rejectingStale, setRejectingStale] = useState(false);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const staleCount = totalCount - jobs.length;
 
   async function handleAction(id: number, action: "approve" | "reject" | "remap", roleSlug?: string) {
     setActing(id);
@@ -24,6 +26,24 @@ export default function ReviewQueueClient({ jobs: initialJobs }: { jobs: Job[] }
       alert("Action failed. Try again.");
     } finally {
       setActing(null);
+    }
+  }
+
+  async function handleRejectStale() {
+    if (!confirm(`Expire all ${staleCount} stale jobs past their valid_through date?`)) return;
+    setRejectingStale(true);
+    try {
+      const res = await fetch("/api/admin/review-queue/expire-stale", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        alert(`Expired ${data.count} stale jobs. Refresh to see updated count.`);
+      } else {
+        alert("Failed to expire stale jobs.");
+      }
+    } catch {
+      alert("Failed to expire stale jobs.");
+    } finally {
+      setRejectingStale(false);
     }
   }
 
@@ -77,25 +97,51 @@ export default function ReviewQueueClient({ jobs: initialJobs }: { jobs: Job[] }
     return (
       <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
         <p className="text-slate-500">Queue cleared — no jobs to review.</p>
+        {staleCount > 0 && (
+          <p className="text-amber-600 text-sm mt-2">
+            {staleCount} stale job{staleCount !== 1 ? "s" : ""} past their expiry date remain in the DB.{" "}
+            <button
+              onClick={handleRejectStale}
+              disabled={rejectingStale}
+              className="underline hover:no-underline"
+            >
+              {rejectingStale ? "Expiring..." : "Expire them now"}
+            </button>
+          </p>
+        )}
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 p-4">
-        <span className="text-sm text-slate-600 font-medium">{jobs.length} job{jobs.length !== 1 ? "s" : ""} in queue</span>
-        <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white rounded-xl border border-slate-200 p-4">
+        <span className="text-sm text-slate-600 font-medium">
+          {jobs.length} job{jobs.length !== 1 ? "s" : ""} loaded
+          {staleCount > 0 && (
+            <span className="ml-2 text-amber-600">· {staleCount} more not shown</span>
+          )}
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {staleCount > 0 && (
+            <button
+              onClick={handleRejectStale}
+              disabled={rejectingStale || bulkActing}
+              className="px-4 py-2 rounded-lg bg-amber-100 text-amber-800 text-sm font-medium hover:bg-amber-200 disabled:opacity-50"
+            >
+              {rejectingStale ? "Expiring..." : `Expire ${staleCount} stale`}
+            </button>
+          )}
           <button
             onClick={() => handleBulk("approve")}
-            disabled={bulkActing}
+            disabled={bulkActing || rejectingStale}
             className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"
           >
             {bulkActing ? "Working..." : "Approve all"}
           </button>
           <button
             onClick={() => handleBulk("reject")}
-            disabled={bulkActing}
+            disabled={bulkActing || rejectingStale}
             className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
           >
             {bulkActing ? "Working..." : "Reject all"}
