@@ -5,6 +5,9 @@ const db = postgres(process.env.POSTGRES_URL!, {
   max: 10,
   idle_timeout: 30,
   connect_timeout: 5,
+  connection: {
+    statement_timeout: 15000,
+  },
 });
 
 export async function sql(
