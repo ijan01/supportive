@@ -2,29 +2,24 @@ import Link from "next/link";
 import { getAdminStats, type AdminStats } from "@/lib/admin";
 import { getContentPlanStats } from "@/lib/content-plan";
 import { sql } from "@/lib/db";
-import { DEFAULT_MODEL_ID, DEFAULT_SYSTEM_PROMPT } from "@/constants/content-models";
-import AgentSettingsClient from "./agent/client";
 
 export const dynamic = "force-dynamic";
 
 async function getBlogStats() {
-  const [total, published, drafts] = await Promise.all([
-    sql`SELECT COUNT(*)::int AS count FROM blog_posts`,
+  const [published, drafts] = await Promise.all([
     sql`SELECT COUNT(*)::int AS count FROM blog_posts WHERE published_at IS NOT NULL`,
     sql`SELECT COUNT(*)::int AS count FROM blog_posts WHERE published_at IS NULL`,
   ]);
-  return { total: total.rows[0].count, published: published.rows[0].count, drafts: drafts.rows[0].count };
+  return { published: published.rows[0].count as number, drafts: drafts.rows[0].count as number };
 }
 
 export default async function AdminDashboard() {
   const defaultStats: AdminStats = { totalUsers: 0, totalJobs: 0, activeJobs: 0, pendingReview: 0, totalApplications: 0, companiesCount: 0 };
-  const [stats, contentStats, blogStats, agentRow] = await Promise.all([
+  const [stats, contentStats, blogStats] = await Promise.all([
     getAdminStats().catch(() => defaultStats),
     getContentPlanStats().catch(() => ({} as Record<string, number>)),
-    getBlogStats().catch(() => ({ total: 0, published: 0, drafts: 0 })),
-    sql`SELECT model_id, system_prompt FROM agent_settings WHERE id = 1`.catch(() => ({ rows: [] })),
+    getBlogStats().catch(() => ({ published: 0, drafts: 0 })),
   ]);
-  const agentSettings = agentRow.rows[0] as { model_id: string; system_prompt: string } | undefined;
 
   const contentTotal = Object.values(contentStats).reduce((a, b) => a + b, 0);
   const contentPublished = contentStats["Published"] || 0;
@@ -61,7 +56,7 @@ export default async function AdminDashboard() {
 
       {/* Content section */}
       <h2 className="text-lg font-bold text-slate-900 mb-4">Content</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <Link href="/admin/content" className="block bg-white rounded-2xl border border-slate-200 p-6 hover:border-violet-300 hover:shadow-md transition-all">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-bold text-slate-900">Content Plan</h3>
@@ -88,20 +83,13 @@ export default async function AdminDashboard() {
           <div className="flex gap-4 text-xs text-slate-400">
             <span><strong className="text-slate-600">{blogStats.published}</strong> published</span>
             <span><strong className="text-slate-600">{blogStats.drafts}</strong> drafts</span>
-            <span><strong className="text-slate-600">{blogStats.total}</strong> total</span>
           </div>
         </Link>
 
-      </div>
-
-      {/* Content Agent section */}
-      <h2 className="text-lg font-bold text-slate-900 mb-4">Content Agent</h2>
-      <div className="mb-8">
-        <AgentSettingsClient
-          initialModelId={agentSettings?.model_id ?? DEFAULT_MODEL_ID}
-          initialSystemPrompt={agentSettings?.system_prompt || DEFAULT_SYSTEM_PROMPT}
-          defaultSystemPrompt={DEFAULT_SYSTEM_PROMPT}
-        />
+        <Link href="/admin/agent" className="block bg-white rounded-2xl border border-slate-200 p-6 hover:border-violet-300 hover:shadow-md transition-all">
+          <h3 className="font-bold text-slate-900 mb-2">Content Agent</h3>
+          <p className="text-sm text-slate-500">Configure the AI model and system prompt used for article generation.</p>
+        </Link>
       </div>
 
       {/* Manage section */}
